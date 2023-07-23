@@ -8,4 +8,8 @@
 		<OutputType>Exe</OutputType>
 		<PublishSingleFile>true</PublishSingleFile>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.IO.Ports" Version="7.0.0" />
+	</ItemGroup>
 </Project>
