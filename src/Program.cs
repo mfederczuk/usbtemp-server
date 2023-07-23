@@ -47,6 +47,7 @@ public static class Program
 			.AddControllers();
 
 		WebApplication app = builder.Build();
+		app.UseStaticFiles();
 		app.MapControllers();
 
 		app.Run();
