@@ -5,6 +5,8 @@
  */
 
 using System;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace UsbtempServer;
 
@@ -29,9 +31,24 @@ public static class Program
 			Temperature initialTemperature = thermometer.ReadTemperature();
 
 			Console.Error.WriteLine($"\nSerial number: {serialNumber}");
-			Console.Error.WriteLine($"Initial temperature: {initialTemperature.ToDegreeCelsiusFloat()}°C");
+			Console.Error.WriteLine($"Initial temperature: {initialTemperature.ToDegreeCelsiusFloat()}°C\n");
+
+			runServer(args, thermometer);
 		}
 
 		return 0;
+	}
+
+	private static void runServer(string[] args, Thermometer thermometer)
+	{
+		WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+		builder.Services
+			.AddSingleton(thermometer)
+			.AddControllers();
+
+		WebApplication app = builder.Build();
+		app.MapControllers();
+
+		app.Run();
 	}
 }
