@@ -1,0 +1,179 @@
+#!/bin/sh
+# -*- sh -*-
+# vim: syntax=sh
+# code: language=shellscript
+
+# Copyright (c) 2023 Michael Federczuk
+# SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
+
+#region preamble
+
+case "$-" in
+	(*'i'*)
+		\command printf 'script was called interactively\n' >&2
+		return 124
+		;;
+esac
+
+set -o errexit
+set -o nounset
+
+# enabling POSIX-compliant behavior for GNU programs
+export POSIXLY_CORRECT=yes POSIX_ME_HARDER=yes
+
+if [ "${0#/}" = "$0" ]; then
+	argv0="$0"
+else
+	argv0="$(basename -- "$0" && printf x)"
+	argv0="${argv0%"$(printf '\nx')"}"
+fi
+readonly argv0
+
+#endregion
+
+if ! command -v dotnet > '/dev/null'; then
+	printf '%s: dotnet: program missing\n' "$argv0" >&2
+	exit 27
+fi
+
+if [ $# -gt 0 ]; then
+	printf '%s: too many arguments: %i\n' "$argv0" $# >&2
+	exit 4
+fi
+
+usbtemp_server_version='0.1.0-indev01'
+readonly usbtemp_server_version
+
+# <project_root_dir>/
+# |
+# `-- <packaging_dest_dir>
+#     |
+#     `-- usbtemp-server-<version>-linux-x86_64.tar.gz
+#     |
+#     `-- usbtemp-server-<version>-windows-x86_64.zip
+#
+# <base_tmp_dir>/
+# |
+# `-- <process_tmp_dir>/
+#     |
+#     `-- <base_tmp_packaging_dir>/
+#         |
+#         `-- <linux_tmp_packaging_dir>/
+#         |   `-- *
+#         |
+#         `-- <win_tmp_packaging_dir>/
+#             `-- *
+
+initial_working_dir_pathname="$(pwd -L && printf x)"
+initial_working_dir_pathname="${initial_working_dir_pathname%"$(printf '\nx')"}"
+readonly initial_working_dir_pathname
+
+# the `realpath` command is not part of POSIX, but GNU coreutils, so we need to implement it ourselves
+realpath() {
+	if [ "${1#/}" != "$1" ]; then
+		# pathname is already absolute
+		printf '%s' "$1"
+		return
+	fi
+
+	printf '%s/%s' "$initial_working_dir_pathname" "$1"
+}
+
+#region defining project directories
+
+project_root_dir_pathname="$(dirname -- "$0" && printf x)"
+project_root_dir_pathname="${project_root_dir_pathname%"$(printf '\nx')"}"
+
+project_root_dir_pathname="$(realpath "$project_root_dir_pathname" && printf x)"
+project_root_dir_pathname="${project_root_dir_pathname%x}"
+
+readonly project_root_dir_pathname
+
+
+packaging_dest_dir_pathname="$project_root_dir_pathname/packages"
+readonly packaging_dest_dir_pathname
+
+#endregion
+
+#region setting up temporary directory
+
+base_tmp_dir_pathname="${TMPDIR:-"${TMP:-"${TEMP:-"${TEMPDIR:-"${TMP_DIR:-"${TEMP_DIR:-"/tmp"}"}"}"}"}"}"
+base_tmp_dir_pathname="${base_tmp_dir_pathname%/}"
+
+base_tmp_dir_pathname="$(realpath "$base_tmp_dir_pathname" && printf x)"
+base_tmp_dir_pathname="${base_tmp_dir_pathname%x}"
+
+readonly base_tmp_dir_pathname
+
+
+process_tmp_dir_pathname="$base_tmp_dir_pathname/usbtemp-server-packaging-$$"
+readonly process_tmp_dir_pathname
+
+
+remove_process_tmp_dir() {
+	rm -rf -- "$process_tmp_dir_pathname"
+}
+
+trap remove_process_tmp_dir EXIT
+trap 'trap - EXIT; remove_process_tmp_dir' INT QUIT TERM
+
+
+mkdir -p -- "$process_tmp_dir_pathname"
+
+#endregion
+
+unset -f realpath
+
+base_tmp_packaging_dir_pathname="$process_tmp_dir_pathname/packaging"
+readonly base_tmp_packaging_dir_pathname
+
+do_packaging() {
+	rm -rf -- "${project_root_dir_pathname:?}/bin/" "$project_root_dir_pathname/obj/" || return
+
+	dotnet publish "$project_root_dir_pathname" \
+	               --output "$1/" \
+	               --self-contained \
+	               --runtime "$2" || return
+
+	# removing the files that aren't actually needed for the packaging. idk why these are also generated
+	rm -f -- "$1/"*'.json' \
+	         "$1/"*'.pdb' \
+	         "$1/web.config"
+}
+
+rm -r -- "$packaging_dest_dir_pathname"
+mkdir -p -- "$packaging_dest_dir_pathname"
+
+# linux
+(
+	linux_id="usbtemp-server-$usbtemp_server_version-linux-x86_64"
+	readonly linux_id
+
+	linux_tmp_packaging_dir_pathname="$base_tmp_packaging_dir_pathname/$linux_id"
+	readonly linux_tmp_packaging_dir_pathname
+
+	mkdir -p -- "$linux_tmp_packaging_dir_pathname"
+
+	do_packaging "$linux_tmp_packaging_dir_pathname" 'linux-x64'
+
+	cd -- "$base_tmp_packaging_dir_pathname"
+
+	tar -czf "$packaging_dest_dir_pathname/$linux_id.tar.gz" "$linux_id"
+)
+
+# windows
+(
+	windows_id="usbtemp-server-$usbtemp_server_version-windows-x86_64"
+	readonly windows_id
+
+	windows_tmp_packaging_dir_pathname="$base_tmp_packaging_dir_pathname/$windows_id"
+	readonly windows_tmp_packaging_dir_pathname
+
+	mkdir -p -- "$windows_tmp_packaging_dir_pathname"
+
+	do_packaging "$windows_tmp_packaging_dir_pathname" 'win-x64'
+
+	cd -- "$base_tmp_packaging_dir_pathname"
+
+	zip -r "$packaging_dest_dir_pathname/$windows_id.zip" "$windows_id"
+)

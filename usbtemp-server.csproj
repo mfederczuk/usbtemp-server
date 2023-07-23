@@ -1,0 +1,11 @@
+<!-- SPDX-License-Identifier: CC0-1.0 -->
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<RootNamespace>UsbtempServer</RootNamespace>
+
+		<OutputType>Exe</OutputType>
+		<PublishSingleFile>true</PublishSingleFile>
+	</PropertyGroup>
+</Project>
