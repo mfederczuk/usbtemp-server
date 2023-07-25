@@ -5,8 +5,10 @@
 
 # usbtemp-server #
 
-[version_shield]: https://img.shields.io/badge/version-N%2FA_(in_development)-important.svg
-![version: N/A (in development)][version_shield]
+[version_shield]: https://img.shields.io/badge/version-0.1.0--indev01-informational.svg
+[release_page]: https://github.com/mfederczuk/usbtemp-server/releases/tag/v0.1.0-indev01 "Release v0.1.0-indev01"
+[![version: 0.1.0-indev01][version_shield]][release_page]
+[![Changelog](https://img.shields.io/badge/-Changelog-informational.svg)](CHANGELOG.md "Changelog")
 
 ## About ##
 
@@ -118,7 +120,7 @@ If you want the source to be as small as possible, the perfect size for it (if t
 
 Fully built and self-contained (you *don't* need .NET installed on your system) artifacts for
 both Linux-based and Microsoft Windows systems (both for x86, 64-bit architecture) can be downloaded from
-the release page.
+the [release page][release_page].
 
 ## Contributing ##
 
