@@ -1,0 +1,15 @@
+<!-- SPDX-License-Identifier: CC0-1.0 -->
+<Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<RootNamespace>UsbtempServer</RootNamespace>
+
+		<OutputType>Exe</OutputType>
+		<PublishSingleFile>true</PublishSingleFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.IO.Ports" Version="7.0.0" />
+	</ItemGroup>
+</Project>

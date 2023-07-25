@@ -1,0 +1,23 @@
+/*
+ * SPDX-License-Identifier: CC0-1.0
+ */
+
+body {
+	margin: 0;
+	background-color: transparent;
+}
+
+#noscript-layout {
+	background-color: firebrick;
+	padding: 8px;
+}
+#noscript-text {
+	font-family: sans-serif, serif;
+	color: whitesmoke;
+}
+
+#temperature-text {
+	font-family: sans-serif, serif;
+	font-size: 10em;
+	color: whitesmoke;
+}
