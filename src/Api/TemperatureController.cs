@@ -3,6 +3,7 @@
  */
 
 using Microsoft.AspNetCore.Mvc;
+using UsbtempServer.Thermology;
 
 namespace UsbtempServer.Api;
 
