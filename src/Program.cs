@@ -5,16 +5,22 @@
  */
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using UsbtempServer.UpdateCheck;
 
 namespace UsbtempServer;
 
 public static class Program
 {
-	public static int Main(string[] args)
+	private static readonly UpdateCheckComponent updateCheckComponent = new UpdateCheckComponent();
+
+	public static async Task<int> Main(string[] args)
 	{
-		Console.Error.Write("Enter the port name of the USB-thermometer: ");
+		await checkForUpdate();
+
+		Console.Error.Write("\nEnter the port name of the USB-thermometer: ");
 		string? portName = Console.ReadLine();
 
 		if ((portName is null) || (portName == string.Empty))
@@ -37,6 +43,36 @@ public static class Program
 		}
 
 		return 0;
+	}
+
+	private static async Task checkForUpdate()
+	{
+		Console.Error.Write("Checking for updates...");
+
+		UpdateCheckResult result = await updateCheckComponent
+			.GetUpdateChecker()
+			.CheckForUpdate();
+
+		switch (result.ResultType)
+		{
+			case UpdateCheckResultType.UpToDate:
+				Console.Error.WriteLine(" You're up-to-date.");
+				return;
+			case UpdateCheckResultType.UpdateAvailable:
+				break;
+			case UpdateCheckResultType.Failed:
+				Console.Error.WriteLine(" Failed to check for updates. Ignoring and moving on.");
+				return;
+			default:
+				throw new InvalidOperationException(message: $"Unhandled case for enum value {result.ResultType}");
+		}
+
+		if (result.LatestReleasePageUrl is null)
+		{
+			throw new InvalidOperationException("Latest release page URL is null");
+		}
+
+		Console.Error.WriteLine($" An update is available!\nDownload it here: {result.LatestReleasePageUrl}");
 	}
 
 	private static void runServer(string[] args, Thermometer thermometer)
