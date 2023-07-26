@@ -32,7 +32,7 @@ public static class Program
 			return 1;
 		}
 
-		using (Thermometer thermometer = Thermometer.OpenNew(portName))
+		using (IThermometer thermometer = Thermometer.OpenNew(portName))
 		{
 			string serialNumber = thermometer.ReadSerialNumber();
 			Temperature initialTemperature = thermometer.ReadTemperature();
@@ -76,7 +76,7 @@ public static class Program
 		Console.Error.WriteLine($" An update is available!\nDownload it here: {result.LatestReleasePageUrl}");
 	}
 
-	private static void runServer(string[] args, Thermometer thermometer)
+	private static void runServer(string[] args, IThermometer thermometer)
 	{
 		WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 		builder.Services

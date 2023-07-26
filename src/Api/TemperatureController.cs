@@ -11,9 +11,9 @@ namespace UsbtempServer.Api;
 [Route("temperature")]
 public class TemperatureController : ControllerBase
 {
-	private readonly Thermometer thermometer;
+	private readonly IThermometer thermometer;
 
-	public TemperatureController(Thermometer thermometer)
+	public TemperatureController(IThermometer thermometer)
 	{
 		this.thermometer = thermometer;
 	}
