@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using UsbtempServer.Thermology;
 using UsbtempServer.UpdateCheck;
+using UsbtempServer.Utils;
 
 namespace UsbtempServer;
 
@@ -28,22 +29,27 @@ public static class Program
 
 	public static async Task<int> Main(string[] args)
 	{
-		await checkForUpdate();
+		Cli cli = new();
 
-		Console.Error.WriteLine();
+		await checkForUpdate(cli);
 
-		Func<IThermometer?>? thermometerSupplier = getThermometerSupplier();
+		Func<Cli, IThermometer?>? thermometerSupplier = getThermometerSupplier(cli);
 		if (thermometerSupplier is null) return 1;
 
-		using (IThermometer? thermometer = thermometerSupplier())
+		using (IThermometer? thermometer = thermometerSupplier(cli))
 		{
 			if (thermometer is null) return 1;
 
 			string serialNumber = thermometer.ReadSerialNumber();
 			Temperature initialTemperature = thermometer.ReadTemperature();
 
-			Console.Error.WriteLine($"\nSerial number: {serialNumber}");
-			Console.Error.WriteLine($"Initial temperature: {initialTemperature.ToDegreeCelsiusFloat()}°C\n");
+			using (Cli.Paragraph paragraph = cli.BeginNewParagraph())
+			{
+				paragraph.PrintLine($"Serial number: {serialNumber}");
+				paragraph.PrintLine($"Initial temperature: {initialTemperature.ToDegreeCelsiusFloat()}°C");
+			}
+
+			cli.PrintBlankLine();
 
 			runServer(args, thermometer);
 		}
@@ -51,98 +57,108 @@ public static class Program
 		return 0;
 	}
 
-	private static async Task checkForUpdate()
+	private static async Task checkForUpdate(Cli cli)
 	{
-		Console.Error.Write("Checking for updates...");
-
-		UpdateCheckResult result = await updateCheckComponent
-			.GetUpdateChecker()
-			.CheckForUpdate();
-
-		switch (result.ResultType)
+		using (Cli.Paragraph paragraph = cli.BeginNewParagraph())
 		{
-			case UpdateCheckResultType.UpToDate:
-				Console.Error.WriteLine(" You're up-to-date.");
-				return;
-			case UpdateCheckResultType.UpdateAvailable:
-				break;
-			case UpdateCheckResultType.Failed:
-				Console.Error.WriteLine(" Failed to check for updates. Ignoring and moving on.");
-				return;
-			default:
-				throw new InvalidOperationException(message: $"Unhandled case for enum value {result.ResultType}");
-		}
+			Cli.Paragraph.Action updateCheckAction = paragraph.StartNewAction(name: "Checking for updates");
 
-		if (result.LatestReleasePageUrl is null)
-		{
-			throw new InvalidOperationException("Latest release page URL is null");
-		}
+			UpdateCheckResult result = await updateCheckComponent
+				.GetUpdateChecker()
+				.CheckForUpdate();
 
-		Console.Error.WriteLine($" An update is available!\nDownload it here: {result.LatestReleasePageUrl}");
-	}
+			switch (result.ResultType)
+			{
+				case UpdateCheckResultType.UpToDate:
+					updateCheckAction.Finish(resultMsg: "You're up-to-date");
+					return;
+				case UpdateCheckResultType.UpdateAvailable:
+					break;
+				case UpdateCheckResultType.Failed:
+					updateCheckAction.Finish(resultMsg: "Failed to check for updates. Ignoring and moving on.");
+					return;
+				default:
+					throw new InvalidOperationException(message: $"Unhandled case for enum value {result.ResultType}");
+			}
 
-	private static Func<IThermometer?>? getThermometerSupplier()
-	{
-		ThermometerKindSelection selection = promptForThermometerKind();
-		switch (selection)
-		{
-			case ThermometerKindSelection.Physical:
-				return promptForPhysicalThermometer;
-			case ThermometerKindSelection.Virtual:
-				return () => { return new MockThermometer(); };
-			case ThermometerKindSelection.Invalid:
-				Console.Error.WriteLine("Invalid selection. Quitting.");
-				return null;
-			case ThermometerKindSelection.Cancelled:
-				Console.Error.WriteLine("Aborted.");
-				return null;
-			case ThermometerKindSelection.Eof:
-				Console.Error.WriteLine("\nAborted.");
-				return null;
-			default:
-				throw new InvalidOperationException(message: $"Unhandled case for enum value {selection}");
+			if (result.LatestReleasePageUrl is null)
+			{
+				throw new InvalidOperationException("Latest release page URL is null");
+			}
+
+			updateCheckAction.Finish(resultMsg: $"An update is available!\nDownload it here: {result.LatestReleasePageUrl}");
 		}
 	}
 
-	private static IThermometer? promptForPhysicalThermometer()
+	private static Func<Cli, IThermometer?>? getThermometerSupplier(Cli cli)
 	{
-		Console.Error.Write("Enter the port name of the USB thermometer: ");
-		string? portName = Console.ReadLine();
-
-		if (portName is null)
+		using (Cli.Paragraph paragraph = cli.BeginNewParagraph())
 		{
-			Console.Error.WriteLine("\nAborted.");
-			return null;
+			ThermometerKindSelection selection = promptForThermometerKind(paragraph);
+			switch (selection)
+			{
+				case ThermometerKindSelection.Physical:
+					return promptForPhysicalThermometer;
+				case ThermometerKindSelection.Virtual:
+					return (Cli _) => { return new MockThermometer(); };
+				case ThermometerKindSelection.Invalid:
+					paragraph.PrintLine("Invalid selection. Quitting.");
+					return null;
+				case ThermometerKindSelection.Cancelled:
+					paragraph.PrintLine("Aborted.");
+					return null;
+				case ThermometerKindSelection.Eof:
+					paragraph.PrintBlankLine();
+					paragraph.PrintLine("Aborted.");
+					return null;
+				default:
+					throw new InvalidOperationException(message: $"Unhandled case for enum value {selection}");
+			}
 		}
-
-		if (portName == string.Empty)
-		{
-			Console.Error.WriteLine("Aborted.");
-			return null;
-		}
-
-		return Thermometer.OpenNew(portName);
 	}
 
-	private static ThermometerKindSelection promptForThermometerKind()
+	private static IThermometer? promptForPhysicalThermometer(Cli cli)
+	{
+		using (Cli.Paragraph paragraph = cli.BeginNewParagraph())
+		{
+			Cli.StringResponse response = paragraph.PromptForString(msg: "Enter the port name of the USB thermometer");
+
+			if (response.IsEof())
+			{
+				paragraph.PrintBlankLine();
+				paragraph.PrintLine("Aborted.");
+				return null;
+			}
+
+			string responseValue = response.GetValue();
+
+			if (responseValue == string.Empty)
+			{
+				paragraph.PrintLine("Aborted.");
+				return null;
+			}
+
+			return Thermometer.OpenNew(portName: responseValue);
+		}
+	}
+
+	private static ThermometerKindSelection promptForThermometerKind(Cli.Paragraph paragraph)
 	{
 #if DEBUG
 		string message = "[DEBUG] Select the kind of thermometer to use.\n" +
 		                 "[DEBUG] (1) real/physical USB thermometer\n" +
 		                 "[DEBUG] (2) virtual mock thermometer\n" +
 		                 "[DEBUG] (q) cancel\n" +
-		                 "[DEBUG] Enter: [2] ";
-		Console.Error.Write(message);
+		                 "[DEBUG] Enter";
+		Cli.StringResponse response = paragraph.PromptForString(message, defaultValue: "2");
 
-		string? input = Console.ReadLine();
+		if (response.IsEof()) return ThermometerKindSelection.Eof;
 
-		if (input is null) return ThermometerKindSelection.Eof;
+		string responseValue = response.GetValue();
 
-		input = input.Trim();
-
-		if (input == "1") return ThermometerKindSelection.Physical;
-		if ((input == "2") || (input == string.Empty)) return ThermometerKindSelection.Virtual;
-		if (input.ToLower() == "q") return ThermometerKindSelection.Cancelled;
+		if (responseValue == "1") return ThermometerKindSelection.Physical;
+		if (responseValue == "2") return ThermometerKindSelection.Virtual;
+		if (responseValue.ToLower() == "q") return ThermometerKindSelection.Cancelled;
 
 		return ThermometerKindSelection.Invalid;
 #else
