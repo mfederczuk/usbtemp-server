@@ -5,17 +5,25 @@
  */
 
 using System;
+using System.Diagnostics.Contracts;
+using System.IO.Ports;
 
 namespace UsbtempServer.Thermology;
 
 public class PhysicalThermometer : IThermometer, IDisposable
 {
+	private const int BAUD_RATE = 115_200;
+	private const int DATA_BITS = 6;
+	private const int READ_WRITE_TIMEOUT = 500;
+
 	private usbtemp.Thermometer? internalThermometer;
+	private SerialPort? serialPort;
 	private readonly Lazy<IThermometer.SerialNumber> lazySerialNumber;
 
-	private PhysicalThermometer(usbtemp.Thermometer internalThermometer)
+	[Pure]
+	private PhysicalThermometer(SerialPort openedSerialPort)
 	{
-		this.internalThermometer = internalThermometer;
+		this.serialPort = openedSerialPort;
 		this.lazySerialNumber = new Lazy<IThermometer.SerialNumber>(valueFactory: this.readSerialNumber);
 	}
 
@@ -29,10 +37,23 @@ public class PhysicalThermometer : IThermometer, IDisposable
 			);
 		}
 
-		usbtemp.Thermometer internalThermometer = new();
-		internalThermometer.Open(portName.ToString());
+		SerialPort serialPort = new(
+			portName: portName.ToString(),
+			baudRate: BAUD_RATE,
+			parity: Parity.None,
+			dataBits: DATA_BITS,
+			stopBits: StopBits.One
+		)
+		{
+			Handshake = Handshake.None,
+			RtsEnable = false,
+			ReadTimeout = READ_WRITE_TIMEOUT,
+			WriteTimeout = READ_WRITE_TIMEOUT,
+		};
 
-		return new PhysicalThermometer(internalThermometer);
+		serialPort.Open();
+
+		return new PhysicalThermometer(openedSerialPort: serialPort);
 	}
 
 	public IThermometer.SerialNumber GetSerialNumber()
@@ -49,16 +70,22 @@ public class PhysicalThermometer : IThermometer, IDisposable
 
 	void IDisposable.Dispose()
 	{
-		if (this.internalThermometer is null)
+		if (this.serialPort is null)
 		{
 			return;
 		}
 
-		this.internalThermometer.Close();
+		this.serialPort.Close();
 	}
 
 	private IThermometer.SerialNumber readSerialNumber()
 	{
+		SerialPort serialPort = this.ensureNotDisposedNew();
+
+		if (OneWire.WriteReset(serialPort) != OneWire.ResultStatus.Success)
+		{
+		}
+
 		usbtemp.Thermometer internalThermometer = this.ensureNotDisposed();
 
 		byte[] rawSerialNumber = internalThermometer.Rom();
@@ -74,6 +101,16 @@ public class PhysicalThermometer : IThermometer, IDisposable
 		}
 
 		return this.internalThermometer;
+	}
+
+	private SerialPort ensureNotDisposedNew()
+	{
+		if (this.serialPort is null)
+		{
+			throw new InvalidOperationException(message: "Thermometer resources is already closed");
+		}
+
+		return this.serialPort;
 	}
 
 	private static ulong uInt64FromBytes(byte[] bytes)
