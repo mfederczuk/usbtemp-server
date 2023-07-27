@@ -10,11 +10,17 @@ namespace UsbtempServer.Thermology;
 public class MockThermometer : IThermometer
 {
 	private readonly Random rng = new Random();
+	private readonly IThermometer.SerialNumber serialNumber;
+
+	public MockThermometer()
+	{
+		this.serialNumber = IThermometer.SerialNumber.CreateRandom(this.rng);
+	}
 
 	[Pure]
-	public string ReadSerialNumber()
+	public IThermometer.SerialNumber ReadSerialNumber()
 	{
-		return "0000000000000000";
+		return this.serialNumber;
 	}
 
 	public Temperature ReadTemperature()
