@@ -42,6 +42,37 @@ public class Cli
 		}
 	}
 
+	public readonly struct BoolResponse
+	{
+		private readonly bool? value;
+
+		[Pure]
+		private BoolResponse(bool? value)
+		{
+			this.value = value;
+		}
+
+		[Pure] public static BoolResponse Eof() => new BoolResponse(null);
+		[Pure] public static BoolResponse OfValue(bool value) => new BoolResponse(value);
+
+		[Pure]
+		public bool IsEof()
+		{
+			return (this.value is null);
+		}
+
+		[Pure]
+		public bool IsYes()
+		{
+			if (this.value is null)
+			{
+				throw new InvalidOperationException("Cannot retrieve the response's value; response was EOF");
+			}
+
+			return this.value.Value;
+		}
+	}
+
 	public class Paragraph : IDisposable
 	{
 		public class Action
@@ -163,6 +194,32 @@ public class Cli
 			}
 
 			return StringResponse.OfValue(responseValue);
+		}
+
+		public BoolResponse PromptForBool(string msg, bool defaultValue)
+		{
+			this.ensureNoActiveAction(forbiddenAction: "prompt for bool");
+
+			string? rawResponse = this.prompt(msg + (defaultValue ? " [Y/n] " : " [y/N] "));
+
+			if (rawResponse is null)
+			{
+				return BoolResponse.Eof();
+			}
+
+			string trimmedResponse = rawResponse.Trim();
+
+			bool responseValue;
+			if (trimmedResponse != string.Empty)
+			{
+				responseValue = trimmedResponse.ToLower().StartsWith("y");
+			}
+			else
+			{
+				responseValue = defaultValue;
+			}
+
+			return BoolResponse.OfValue(responseValue);
 		}
 
 		private string? prompt(string msg)
