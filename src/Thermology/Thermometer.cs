@@ -6,9 +6,9 @@
 
 using System;
 
-namespace UsbtempServer;
+namespace UsbtempServer.Thermology;
 
-public class Thermometer : IDisposable
+public class Thermometer : IThermometer, IDisposable
 {
 	private usbtemp.Thermometer? internalThermometer;
 

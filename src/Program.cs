@@ -8,31 +8,37 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using UsbtempServer.Thermology;
 using UsbtempServer.UpdateCheck;
 
 namespace UsbtempServer;
 
 public static class Program
 {
+	private enum ThermometerKindSelection
+	{
+		Physical,
+		Virtual,
+		Cancelled,
+		Invalid,
+		Eof,
+	}
+
 	private static readonly UpdateCheckComponent updateCheckComponent = new UpdateCheckComponent();
 
 	public static async Task<int> Main(string[] args)
 	{
 		await checkForUpdate();
 
-		Console.Error.Write("\nEnter the port name of the USB-thermometer: ");
-		string? portName = Console.ReadLine();
+		Console.Error.WriteLine();
 
-		if ((portName is null) || (portName == string.Empty))
+		Func<IThermometer?>? thermometerSupplier = getThermometerSupplier();
+		if (thermometerSupplier is null) return 1;
+
+		using (IThermometer? thermometer = thermometerSupplier())
 		{
-			string prefix = ((portName is null) ? "\n" : "");
-			Console.Error.WriteLine(prefix + "Aborted.");
+			if (thermometer is null) return 1;
 
-			return 1;
-		}
-
-		using (Thermometer thermometer = Thermometer.OpenNew(portName))
-		{
 			string serialNumber = thermometer.ReadSerialNumber();
 			Temperature initialTemperature = thermometer.ReadTemperature();
 
@@ -75,7 +81,76 @@ public static class Program
 		Console.Error.WriteLine($" An update is available!\nDownload it here: {result.LatestReleasePageUrl}");
 	}
 
-	private static void runServer(string[] args, Thermometer thermometer)
+	private static Func<IThermometer?>? getThermometerSupplier()
+	{
+		ThermometerKindSelection selection = promptForThermometerKind();
+		switch (selection)
+		{
+			case ThermometerKindSelection.Physical:
+				return promptForPhysicalThermometer;
+			case ThermometerKindSelection.Virtual:
+				return () => { return new MockThermometer(); };
+			case ThermometerKindSelection.Invalid:
+				Console.Error.WriteLine("Invalid selection. Quitting.");
+				return null;
+			case ThermometerKindSelection.Cancelled:
+				Console.Error.WriteLine("Aborted.");
+				return null;
+			case ThermometerKindSelection.Eof:
+				Console.Error.WriteLine("\nAborted.");
+				return null;
+			default:
+				throw new InvalidOperationException(message: $"Unhandled case for enum value {selection}");
+		}
+	}
+
+	private static IThermometer? promptForPhysicalThermometer()
+	{
+		Console.Error.Write("Enter the port name of the USB thermometer: ");
+		string? portName = Console.ReadLine();
+
+		if (portName is null)
+		{
+			Console.Error.WriteLine("\nAborted.");
+			return null;
+		}
+
+		if (portName == string.Empty)
+		{
+			Console.Error.WriteLine("Aborted.");
+			return null;
+		}
+
+		return Thermometer.OpenNew(portName);
+	}
+
+	private static ThermometerKindSelection promptForThermometerKind()
+	{
+#if DEBUG
+		string message = "[DEBUG] Select the kind of thermometer to use.\n" +
+		                 "[DEBUG] (1) real/physical USB thermometer\n" +
+		                 "[DEBUG] (2) virtual mock thermometer\n" +
+		                 "[DEBUG] (q) cancel\n" +
+		                 "[DEBUG] Enter: [2] ";
+		Console.Error.Write(message);
+
+		string? input = Console.ReadLine();
+
+		if (input is null) return ThermometerKindSelection.Eof;
+
+		input = input.Trim();
+
+		if (input == "1") return ThermometerKindSelection.Physical;
+		if ((input == "2") || (input == string.Empty)) return ThermometerKindSelection.Virtual;
+		if (input.ToLower() == "q") return ThermometerKindSelection.Cancelled;
+
+		return ThermometerKindSelection.Invalid;
+#else
+		return ThermometerKindSelection.Physical;
+#endif
+	}
+
+	private static void runServer(string[] args, IThermometer thermometer)
 	{
 		WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 		builder.Services

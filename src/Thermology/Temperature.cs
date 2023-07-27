@@ -6,7 +6,7 @@
 
 using System;
 
-namespace UsbtempServer;
+namespace UsbtempServer.Thermology;
 
 public readonly struct Temperature
 {
