@@ -11,10 +11,12 @@ namespace UsbtempServer.Thermology;
 public class Thermometer : IThermometer, IDisposable
 {
 	private usbtemp.Thermometer? internalThermometer;
+	private readonly Lazy<IThermometer.SerialNumber> lazySerialNumber;
 
 	private Thermometer(usbtemp.Thermometer internalThermometer)
 	{
 		this.internalThermometer = internalThermometer;
+		this.lazySerialNumber = new Lazy<IThermometer.SerialNumber>(valueFactory: this.readSerialNumber);
 	}
 
 	public static Thermometer OpenNew(SerialPortName portName)
@@ -27,11 +29,7 @@ public class Thermometer : IThermometer, IDisposable
 
 	public IThermometer.SerialNumber GetSerialNumber()
 	{
-		usbtemp.Thermometer internalThermometer = this.ensureNotDisposed();
-
-		byte[] rawSerialNumber = internalThermometer.Rom();
-		ulong serialNumberUInt64 = uInt64FromBytes(rawSerialNumber);
-		return IThermometer.SerialNumber.OfUInt64(serialNumberUInt64);
+		return this.lazySerialNumber.Value;
 	}
 
 	public Temperature ReadTemperature()
@@ -49,6 +47,15 @@ public class Thermometer : IThermometer, IDisposable
 		}
 
 		this.internalThermometer.Close();
+	}
+
+	private IThermometer.SerialNumber readSerialNumber()
+	{
+		usbtemp.Thermometer internalThermometer = this.ensureNotDisposed();
+
+		byte[] rawSerialNumber = internalThermometer.Rom();
+		ulong serialNumberUInt64 = uInt64FromBytes(rawSerialNumber);
+		return IThermometer.SerialNumber.OfUInt64(serialNumberUInt64);
 	}
 
 	private usbtemp.Thermometer ensureNotDisposed()
