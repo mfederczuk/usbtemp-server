@@ -138,7 +138,7 @@ public static class Program
 				return null;
 			}
 
-			return Thermometer.OpenNew(portName: SerialPortName.OfString(responseValue));
+			return ThermometerFactory.OpenNew(portName: SerialPortName.OfString(responseValue));
 		}
 	}
 
