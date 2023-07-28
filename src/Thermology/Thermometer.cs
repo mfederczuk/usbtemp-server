@@ -25,7 +25,7 @@ public class Thermometer : IThermometer, IDisposable
 		return new Thermometer(internalThermometer);
 	}
 
-	public IThermometer.SerialNumber ReadSerialNumber()
+	public IThermometer.SerialNumber GetSerialNumber()
 	{
 		usbtemp.Thermometer internalThermometer = this.ensureNotDisposed();
 

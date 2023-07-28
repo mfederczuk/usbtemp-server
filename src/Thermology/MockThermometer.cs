@@ -18,7 +18,7 @@ public class MockThermometer : IThermometer
 	}
 
 	[Pure]
-	public IThermometer.SerialNumber ReadSerialNumber()
+	public IThermometer.SerialNumber GetSerialNumber()
 	{
 		return this.serialNumber;
 	}

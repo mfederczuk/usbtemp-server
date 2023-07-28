@@ -40,7 +40,7 @@ public static class Program
 		{
 			if (thermometer is null) return 1;
 
-			IThermometer.SerialNumber serialNumber = thermometer.ReadSerialNumber();
+			IThermometer.SerialNumber serialNumber = thermometer.GetSerialNumber();
 			Temperature initialTemperature = thermometer.ReadTemperature();
 
 			using (Cli.Paragraph paragraph = cli.BeginNewParagraph())
