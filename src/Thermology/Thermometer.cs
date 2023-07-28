@@ -17,10 +17,10 @@ public class Thermometer : IThermometer, IDisposable
 		this.internalThermometer = internalThermometer;
 	}
 
-	public static Thermometer OpenNew(string portName)
+	public static Thermometer OpenNew(SerialPortName portName)
 	{
 		usbtemp.Thermometer internalThermometer = new();
-		internalThermometer.Open(portName);
+		internalThermometer.Open(portName.ToString());
 
 		return new Thermometer(internalThermometer);
 	}
