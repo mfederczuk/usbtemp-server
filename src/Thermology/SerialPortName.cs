@@ -12,6 +12,8 @@ namespace UsbtempServer.Thermology;
 
 public readonly struct SerialPortName
 {
+	public const string VIRTUAL_PREFIX = "//virt/";
+
 	private readonly string value;
 
 	[Pure]
@@ -32,6 +34,12 @@ public readonly struct SerialPortName
 	public static SerialPortName OfString(string value)
 	{
 		return new SerialPortName(value);
+	}
+
+	[Pure]
+	public bool IsVirtual()
+	{
+		return this.value.StartsWith(VIRTUAL_PREFIX);
 	}
 
 	[Pure]
