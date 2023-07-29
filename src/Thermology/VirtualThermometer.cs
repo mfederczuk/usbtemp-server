@@ -7,12 +7,12 @@ using System.Diagnostics.Contracts;
 
 namespace UsbtempServer.Thermology;
 
-public class MockThermometer : IThermometer
+public class VirtualThermometer : IThermometer
 {
 	private readonly Random rng = new Random();
 	private readonly IThermometer.SerialNumber serialNumber;
 
-	public MockThermometer()
+	public VirtualThermometer()
 	{
 		this.serialNumber = IThermometer.SerialNumber.CreateRandom(this.rng);
 	}

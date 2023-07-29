@@ -100,7 +100,7 @@ public static class Program
 				case ThermometerKindSelection.Physical:
 					return promptForPhysicalThermometer;
 				case ThermometerKindSelection.Virtual:
-					return (Cli _) => { return new MockThermometer(); };
+					return (Cli _) => { return new VirtualThermometer(); };
 				case ThermometerKindSelection.Invalid:
 					paragraph.PrintLine("Invalid selection. Quitting.");
 					return null;
@@ -147,7 +147,7 @@ public static class Program
 #if DEBUG
 		string message = "[DEBUG] Select the kind of thermometer to use.\n" +
 		                 "[DEBUG] (1) real/physical USB thermometer\n" +
-		                 "[DEBUG] (2) virtual mock thermometer\n" +
+		                 "[DEBUG] (2) virtual thermometer\n" +
 		                 "[DEBUG] (q) cancel\n" +
 		                 "[DEBUG] Enter";
 		Cli.StringResponse response = paragraph.PromptForString(message, defaultValue: "2");
