@@ -8,6 +8,6 @@ public static class ThermometerFactory
 {
 	public static IThermometer OpenNew(SerialPortName portName)
 	{
-		return Thermometer.OpenNew(portName);
+		return PhysicalThermometer.OpenNew(portName);
 	}
 }

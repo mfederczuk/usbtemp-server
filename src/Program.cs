@@ -146,7 +146,7 @@ public static class Program
 	{
 #if DEBUG
 		string message = "[DEBUG] Select the kind of thermometer to use.\n" +
-		                 "[DEBUG] (1) real/physical USB thermometer\n" +
+		                 "[DEBUG] (1) physical thermometer\n" +
 		                 "[DEBUG] (2) virtual thermometer\n" +
 		                 "[DEBUG] (q) cancel\n" +
 		                 "[DEBUG] Enter";
