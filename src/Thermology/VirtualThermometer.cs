@@ -10,12 +10,28 @@ namespace UsbtempServer.Thermology;
 public class VirtualThermometer : IThermometer
 {
 	private readonly Random rng = new Random();
+	private readonly SerialPortName portName;
 	private readonly IThermometer.SerialNumber serialNumber;
 
 	[Pure]
-	public VirtualThermometer(IThermometer.SerialNumber serialNumber)
+	public VirtualThermometer(SerialPortName portName, IThermometer.SerialNumber serialNumber)
 	{
+		if (!(portName.IsVirtual()))
+		{
+			throw new ArgumentException(
+				message: "The port name for a virtual thermometer must be virtual",
+				paramName: nameof(portName)
+			);
+		}
+
+		this.portName = portName;
 		this.serialNumber = serialNumber;
+	}
+
+	[Pure]
+	public SerialPortName GetPortName()
+	{
+		return this.portName;
 	}
 
 	[Pure]

@@ -47,6 +47,7 @@ public interface IThermometer : IDisposable
 		}
 	}
 
+	public SerialPortName GetPortName();
 	public SerialNumber GetSerialNumber();
 	public Temperature ReadTemperature();
 }
