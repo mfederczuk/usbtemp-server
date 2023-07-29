@@ -1,5 +1,7 @@
 /*
- * SPDX-License-Identifier: CC0-1.0
+ * Copyright (c) 2023 Michael Federczuk
+ *
+ * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
 using System;
