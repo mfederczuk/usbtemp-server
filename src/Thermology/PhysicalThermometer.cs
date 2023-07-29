@@ -21,6 +21,14 @@ public class PhysicalThermometer : IThermometer, IDisposable
 
 	public static PhysicalThermometer OpenNew(SerialPortName portName)
 	{
+		if (portName.IsVirtual())
+		{
+			throw new ArgumentException(
+				message: "The port name for a physical thermometer must not be virtual",
+				paramName: nameof(portName)
+			);
+		}
+
 		usbtemp.Thermometer internalThermometer = new();
 		internalThermometer.Open(portName.ToString());
 
