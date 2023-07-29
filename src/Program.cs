@@ -16,15 +16,6 @@ namespace UsbtempServer;
 
 public static class Program
 {
-	private enum ThermometerKindSelection
-	{
-		Physical,
-		Virtual,
-		Cancelled,
-		Invalid,
-		Eof,
-	}
-
 	private static readonly UpdateCheckComponent updateCheckComponent = new UpdateCheckComponent();
 
 	public static async Task<int> Main(string[] args)
@@ -33,10 +24,7 @@ public static class Program
 
 		await checkForUpdate(cli);
 
-		Func<Cli, IThermometer?>? thermometerSupplier = getThermometerSupplier(cli);
-		if (thermometerSupplier is null) return 1;
-
-		using (IThermometer? thermometer = thermometerSupplier(cli))
+		using (IThermometer? thermometer = promptForThermometer(cli))
 		{
 			if (thermometer is null) return 1;
 
@@ -90,37 +78,17 @@ public static class Program
 		}
 	}
 
-	private static Func<Cli, IThermometer?>? getThermometerSupplier(Cli cli)
+	private static IThermometer? promptForThermometer(Cli cli)
 	{
 		using (Cli.Paragraph paragraph = cli.BeginNewParagraph())
 		{
-			ThermometerKindSelection selection = promptForThermometerKind(paragraph);
-			switch (selection)
+#if DEBUG
 			{
-				case ThermometerKindSelection.Physical:
-					return promptForPhysicalThermometer;
-				case ThermometerKindSelection.Virtual:
-					return (Cli _) => { return new VirtualThermometer(); };
-				case ThermometerKindSelection.Invalid:
-					paragraph.PrintLine("Invalid selection. Quitting.");
-					return null;
-				case ThermometerKindSelection.Cancelled:
-					paragraph.PrintLine("Aborted.");
-					return null;
-				case ThermometerKindSelection.Eof:
-					paragraph.PrintBlankLine();
-					paragraph.PrintLine("Aborted.");
-					return null;
-				default:
-					throw new InvalidOperationException(message: $"Unhandled case for enum value {selection}");
+				string debugMsg = "[DEBUG] Virtual devices are created by prefixing an arbitrary port name with" +
+				                  $" \"{SerialPortName.VIRTUAL_PREFIX}\"";
+				paragraph.PrintLine(debugMsg);
 			}
-		}
-	}
-
-	private static IThermometer? promptForPhysicalThermometer(Cli cli)
-	{
-		using (Cli.Paragraph paragraph = cli.BeginNewParagraph())
-		{
+#endif
 			Cli.StringResponse response = paragraph.PromptForString(msg: "Enter the port name of the USB thermometer");
 
 			if (response.IsEof())
@@ -140,30 +108,6 @@ public static class Program
 
 			return ThermometerFactory.OpenNew(portName: SerialPortName.OfString(responseValue));
 		}
-	}
-
-	private static ThermometerKindSelection promptForThermometerKind(Cli.Paragraph paragraph)
-	{
-#if DEBUG
-		string message = "[DEBUG] Select the kind of thermometer to use.\n" +
-		                 "[DEBUG] (1) physical thermometer\n" +
-		                 "[DEBUG] (2) virtual thermometer\n" +
-		                 "[DEBUG] (q) cancel\n" +
-		                 "[DEBUG] Enter";
-		Cli.StringResponse response = paragraph.PromptForString(message, defaultValue: "2");
-
-		if (response.IsEof()) return ThermometerKindSelection.Eof;
-
-		string responseValue = response.GetValue();
-
-		if (responseValue == "1") return ThermometerKindSelection.Physical;
-		if (responseValue == "2") return ThermometerKindSelection.Virtual;
-		if (responseValue.ToLower() == "q") return ThermometerKindSelection.Cancelled;
-
-		return ThermometerKindSelection.Invalid;
-#else
-		return ThermometerKindSelection.Physical;
-#endif
 	}
 
 	private static void runServer(string[] args, IThermometer thermometer)
