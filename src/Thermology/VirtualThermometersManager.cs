@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using System.IO;
 using Newtonsoft.Json;
 using UsbtempServer.Utils;
 
@@ -100,7 +99,7 @@ public static class VirtualThermometersManager
 
 	private static T? DeserializeJsonFile<T>(Pathname filePathname)
 	{
-		string fileContents = File.ReadAllText(filePathname.ToString());
+		string fileContents = FileSystem.ReadTextContents(filePathname);
 		return JsonConvert.DeserializeObject<T>(fileContents);
 	}
 }
