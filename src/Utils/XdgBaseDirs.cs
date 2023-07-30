@@ -21,6 +21,18 @@ public static class XdgBaseDirs
 		);
 	}
 
+	public static Pathname GetStateHome()
+	{
+		return getDirPathname(
+			environmentVariableName: "XDG_STATE_HOME",
+			defaultRelativePathnameSupplier: () =>
+			{
+				return Pathname.CreateRelativeOfSingleComponent(Pathname.Component.OfString(".local"))
+					.JoinWith(Pathname.Component.OfString("state"));
+			}
+		);
+	}
+
 	private static Pathname getDirPathname(
 		string environmentVariableName,
 		Func<Pathname> defaultRelativePathnameSupplier
