@@ -5,16 +5,19 @@
  */
 
 using System;
+using System.Diagnostics.Contracts;
 
 namespace UsbtempServer.Thermology;
 
 public class PhysicalThermometer : IThermometer, IDisposable
 {
+	private readonly SerialPortName portName;
 	private usbtemp.Thermometer? internalThermometer;
 	private readonly Lazy<IThermometer.SerialNumber> lazySerialNumber;
 
-	private PhysicalThermometer(usbtemp.Thermometer internalThermometer)
+	private PhysicalThermometer(SerialPortName portName, usbtemp.Thermometer internalThermometer)
 	{
+		this.portName = portName;
 		this.internalThermometer = internalThermometer;
 		this.lazySerialNumber = new Lazy<IThermometer.SerialNumber>(valueFactory: this.readSerialNumber);
 	}
@@ -32,7 +35,13 @@ public class PhysicalThermometer : IThermometer, IDisposable
 		usbtemp.Thermometer internalThermometer = new();
 		internalThermometer.Open(portName.ToString());
 
-		return new PhysicalThermometer(internalThermometer);
+		return new PhysicalThermometer(portName, internalThermometer);
+	}
+
+	[Pure]
+	public SerialPortName GetPortName()
+	{
+		return this.portName;
 	}
 
 	public IThermometer.SerialNumber GetSerialNumber()

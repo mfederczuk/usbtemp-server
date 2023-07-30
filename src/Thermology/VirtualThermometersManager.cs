@@ -21,6 +21,11 @@ public static class VirtualThermometersManager
 		[property: JsonProperty("enabled", Required = Required.Default)] bool? Enabled
 	);
 
+	public static IEnumerable<VirtualThermometer> GetAllRegisteredVirtualThermometers()
+	{
+		return VirtualThermometersManager.readRegisteredVirtualThermometers().Values;
+	}
+
 	public static VirtualThermometer GetRegisteredVirtualThermometerByPortName(SerialPortName portName)
 	{
 		if (!(portName.IsVirtual()))
@@ -65,7 +70,11 @@ public static class VirtualThermometersManager
 					virtualThermometerDefinition.SerialNumber,
 					style: System.Globalization.NumberStyles.HexNumber
 				);
-			VirtualThermometer virtualThermometer = new(IThermometer.SerialNumber.OfUInt64(serialNumberUInt64));
+			VirtualThermometer virtualThermometer =
+				new(
+					portName,
+					serialNumber: IThermometer.SerialNumber.OfUInt64(serialNumberUInt64)
+				);
 
 			registeredVirtualThermometers.Add(portName, virtualThermometer);
 		}

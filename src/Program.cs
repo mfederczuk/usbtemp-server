@@ -5,6 +5,8 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -82,16 +84,66 @@ public static class Program
 	{
 		using (Cli.Paragraph paragraph = cli.BeginNewParagraph())
 		{
-			Cli.StringResponse response = paragraph.PromptForString(msg: "Enter the port name of the USB thermometer");
+			IList<IThermometer> detectedThermometers = ThermometerDetector.DetectThermometers();
+			switch (detectedThermometers.Count)
+			{
+				case 0:
+					paragraph.PrintLine("No USB thermometers detected.");
+					break;
+				case 1:
+					{
+						IThermometer detectedThermometer = detectedThermometers[0];
 
-			if (response.IsEof())
+						StringBuilder sb = new("A USB thermometer on port ");
+						sb.Append(detectedThermometer.GetPortName().ToString());
+						sb.Append(", with the serial number ");
+						sb.Append(detectedThermometer.GetSerialNumber().ToString());
+						sb.Append(" was detected.\nDo you want to use this device?");
+
+						Cli.BoolResponse boolResponse = paragraph.PromptForBool(sb.ToString(), defaultValue: true);
+
+						if (boolResponse.IsEof())
+						{
+							paragraph.PrintBlankLine();
+							paragraph.PrintLine("Aborted.");
+							return null;
+						}
+
+						if (boolResponse.IsYes())
+						{
+							return detectedThermometer;
+						}
+
+						paragraph.PrintBlankLine();
+						break;
+					}
+				default:
+					{
+						StringBuilder sb = new("The following USB thermometers were detected:");
+						foreach (IThermometer detectedThermometer in detectedThermometers)
+						{
+							sb.Append("\n  * Port: ");
+							sb.Append(detectedThermometer.GetPortName().ToString());
+							sb.Append("  |  Serial number: ");
+							sb.Append(detectedThermometer.GetSerialNumber().ToString());
+						}
+
+						paragraph.PrintLine(sb.ToString());
+						break;
+					}
+			}
+
+			Cli.StringResponse portNameResponse = paragraph
+				.PromptForString(msg: "Enter the port name of the device to use");
+
+			if (portNameResponse.IsEof())
 			{
 				paragraph.PrintBlankLine();
 				paragraph.PrintLine("Aborted.");
 				return null;
 			}
 
-			string responseValue = response.GetValue();
+			string responseValue = portNameResponse.GetValue();
 
 			if (responseValue == string.Empty)
 			{
