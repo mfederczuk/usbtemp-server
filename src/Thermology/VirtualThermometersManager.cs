@@ -21,6 +21,11 @@ public static class VirtualThermometersManager
 		[property: JsonProperty("enabled", Required = Required.Default)] bool? Enabled
 	);
 
+	public static IEnumerable<VirtualThermometer> GetAllRegisteredVirtualThermometers()
+	{
+		return VirtualThermometersManager.readRegisteredVirtualThermometers().Values;
+	}
+
 	public static VirtualThermometer GetRegisteredVirtualThermometerByPortName(SerialPortName portName)
 	{
 		if (!(portName.IsVirtual()))
