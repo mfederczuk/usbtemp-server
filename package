@@ -31,10 +31,12 @@ readonly argv0
 
 #endregion
 
-if ! command -v dotnet > '/dev/null'; then
-	printf '%s: dotnet: program missing\n' "$argv0" >&2
-	exit 27
-fi
+for cmd in git dotnet; do
+	if ! command -v "$cmd" > '/dev/null'; then
+		printf '%s: %s: program missing\n' "$argv0" "$cmd" >&2
+		exit 27
+	fi
+done
 
 if [ $# -gt 0 ]; then
 	printf '%s: too many arguments: %i\n' "$argv0" $# >&2
@@ -46,7 +48,7 @@ readonly usbtemp_server_version
 
 # <project_root_dir>/
 # |
-# `-- <packaging_dest_dir>
+# `-- <project_packaging_archives_dest_dir>/
 #     |
 #     `-- usbtemp-server-<version>-linux-x86_64.tar.gz
 #     |
@@ -56,55 +58,93 @@ readonly usbtemp_server_version
 # |
 # `-- <process_tmp_dir>/
 #     |
-#     `-- <base_tmp_packaging_dir>/
+#     `-- <snapshot_dir>/
+#     |   |
+#     |   `-- <snapshot_repo_dir>/
+#     |   |   `-- *
+#     |   |
+#     |   `-- <snapshot_staged_patch_file>
+#     |   |
+#     |   `-- <snapshot_unstaged_patch_file>
+#     |
+#     `-- <platforms_dir>/
 #         |
-#         `-- <linux_tmp_packaging_dir>/
-#         |   `-- *
+#         `-- <platform_linux_dir>/
+#         |   |
+#         |   `-- source_repo/
+#         |   |   `-- *
+#         |   |
+#         |   `-- <platform_linux_packaging_dest_dir>/
+#         |       `-- *
 #         |
-#         `-- <win_tmp_packaging_dir>/
-#             `-- *
+#         `-- <platform_windows_dir>/
+#             |
+#             `-- source_repo/
+#             |   `-- *
+#             |
+#             `-- <platform_windows_packaging_dest_dir>/
+#                 `-- *
 
-initial_working_dir_pathname="$(pwd -L && printf x)"
-initial_working_dir_pathname="${initial_working_dir_pathname%"$(printf '\nx')"}"
-readonly initial_working_dir_pathname
+is_pathname_absolute() {
+	test "${1#/}" != "$1"
+}
 
-# the `realpath` command is not part of POSIX, but GNU coreutils, so we need to implement it ourselves
-realpath() {
-	if [ "${1#/}" != "$1" ]; then
-		# pathname is already absolute
+# the `realpath` command is not part of POSIX, but GNU coreutils, so we need to create a replacement ourselves
+make_pathname_absolute() {
+	if is_pathname_absolute "$1"; then
 		printf '%s' "$1"
 		return
 	fi
 
-	printf '%s/%s' "$initial_working_dir_pathname" "$1"
+	# moving $1 to $2
+	set -- '' "$1"
+
+	# storing the current working directory pathname in $1
+	set -- "$(pwd -L && printf x)"  "$2" || return
+	set -- "${1%"$(printf '\nx')"}" "$2" || return
+
+	printf '%s/%s' "$1" "$2"
 }
 
-#region defining project directories
+#region project root directory
+
+#region pathname variable setup
 
 project_root_dir_pathname="$(dirname -- "$0" && printf x)"
 project_root_dir_pathname="${project_root_dir_pathname%"$(printf '\nx')"}"
 
-project_root_dir_pathname="$(realpath "$project_root_dir_pathname" && printf x)"
+project_root_dir_pathname="$(make_pathname_absolute "$project_root_dir_pathname" && printf x)"
 project_root_dir_pathname="${project_root_dir_pathname%x}"
 
 readonly project_root_dir_pathname
 
+#endregion
 
-packaging_dest_dir_pathname="$project_root_dir_pathname/packages"
-readonly packaging_dest_dir_pathname
+project_packaging_archives_dest_dir_pathname="$project_root_dir_pathname/packages"
+readonly project_packaging_archives_dest_dir_pathname
+
+current_commit_hash="$(git -C "$project_root_dir_pathname/" --no-pager rev-parse --verify HEAD)"
+readonly current_commit_hash
 
 #endregion
 
-#region setting up temporary directory
+rm -rf -- "$project_packaging_archives_dest_dir_pathname"
+
+#region temporary directory
+
+#region base temporary directory pathname variable setup
 
 base_tmp_dir_pathname="${TMPDIR:-"${TMP:-"${TEMP:-"${TEMPDIR:-"${TMP_DIR:-"${TEMP_DIR:-"/tmp"}"}"}"}"}"}"
 base_tmp_dir_pathname="${base_tmp_dir_pathname%/}"
 
-base_tmp_dir_pathname="$(realpath "$base_tmp_dir_pathname" && printf x)"
+base_tmp_dir_pathname="$(make_pathname_absolute "$base_tmp_dir_pathname" && printf x)"
 base_tmp_dir_pathname="${base_tmp_dir_pathname%x}"
 
 readonly base_tmp_dir_pathname
 
+#endregion
+
+#region temporary process directory setup
 
 process_tmp_dir_pathname="$base_tmp_dir_pathname/usbtemp-server-packaging-$$"
 readonly process_tmp_dir_pathname
@@ -122,59 +162,159 @@ mkdir -p -- "$process_tmp_dir_pathname"
 
 #endregion
 
-unset -f realpath
+#region repository snapshot
 
-base_tmp_packaging_dir_pathname="$process_tmp_dir_pathname/packaging"
-readonly base_tmp_packaging_dir_pathname
+snapshot_dir_pathname="$process_tmp_dir_pathname/snapshot"
+readonly snapshot_dir_pathname
 
-do_packaging() {
-	rm -rf -- "${project_root_dir_pathname:?}/bin/" "$project_root_dir_pathname/obj/" || return
 
-	dotnet publish "$project_root_dir_pathname" \
-	               --output "$1/" \
-	               --self-contained \
-	               --runtime "$2" \
-	               --configuration 'Release' || return
+snapshot_repo_dir_pathname="$snapshot_dir_pathname/repo.git"
+readonly snapshot_repo_dir_pathname
 
-	# removing the files that aren't actually needed for the packaging. idk why these are also generated
-	rm -f -- "$1/"*'.json' \
-	         "$1/"*'.pdb' \
-	         "$1/web.config"
+git clone --no-hardlinks --bare -- "file://$project_root_dir_pathname/" "$snapshot_repo_dir_pathname"
+git -C "$snapshot_repo_dir_pathname/" update-ref --no-deref HEAD "$current_commit_hash"
+
+
+git_raw_diff() {
+	git -C "$project_root_dir_pathname/" \
+	    -c diff.noprefix=false \
+	    --no-pager \
+	    diff --patch-with-raw \
+	         -z \
+	         --no-color \
+	         --full-index \
+	         --binary \
+	         "$@"
 }
 
-rm -r -- "$packaging_dest_dir_pathname"
-mkdir -p -- "$packaging_dest_dir_pathname"
 
-# linux
+snapshot_staged_patch_file_pathname="$snapshot_dir_pathname/staged-changes.patch"
+readonly snapshot_staged_patch_file_pathname
+
+git_raw_diff --staged --output="$snapshot_staged_patch_file_pathname"
+
+
+snapshot_unstaged_patch_file_pathname="$snapshot_dir_pathname/unstaged-changes.patch"
+readonly snapshot_unstaged_patch_file_pathname
+
+git_raw_diff --output="$snapshot_unstaged_patch_file_pathname"
+
+
+unset -f git_raw_diff
+
+#endregion
+
+#region platform packages
+
+clone_snapshot_repo() {
+	git -c advice.detachedHead=false clone --no-hardlinks --depth=1 \
+	                                       -- "file://$snapshot_repo_dir_pathname/" "$1" || return
+
+	# applying staged changes only to the index
+	git -C "$1/" apply --cached --ignore-whitespace --whitespace=nowarn --allow-empty \
+	                   -- "$snapshot_staged_patch_file_pathname" || return
+
+	# applying staged changes only to the working tree
+	git -C "$1/" apply --ignore-whitespace --whitespace=nowarn --allow-empty \
+	                   -- "$snapshot_staged_patch_file_pathname" || return
+
+	# applying unstaged changes only to the working tree
+	git -C "$1/" apply --ignore-whitespace --whitespace=nowarn --allow-empty \
+	                   -- "$snapshot_unstaged_patch_file_pathname"
+}
+
+platforms_dir_pathname="$process_tmp_dir_pathname/platforms"
+readonly platforms_dir_pathname
+
+# $1: platform directory pathname
+# $2: platform packaging destination directory pathname
+# $3: dotnet runtime ID
+package_for_platform() {
+	set -- "$1" "$2" "$3" "$1/source_repo" || return
+
+
+	mkdir -p -- "$1" || return
+
+	clone_snapshot_repo "$4" || return
+
+	printf '\n' >&2
+
+	mkdir -p -- "$2" || return
+	dotnet publish "$4/" \
+	               --output "$2/" \
+	               --self-contained \
+	               --runtime "$3" \
+	               --configuration 'Release' || return
+
+	# removing the files that aren't actually needed for distribution. idk why these are also generated
+	rm -f -- "$2/"*'.json' \
+	         "$2/"*'.pdb' \
+	         "$2/web.config"
+}
+
+#region linux x86_64
+
+printf '\n\n======================== Packaging for Linux (x86_64) =========================\n\n' >&2
+
+platform_linux_dir_pathname="$platforms_dir_pathname/linux-x86_64"
+readonly platform_linux_dir_pathname
+
+platform_linux_packaging_dest_dir_name="usbtemp-server-$usbtemp_server_version-linux-x86_64"
+readonly platform_linux_packaging_dest_dir_name
+
+platform_linux_packaging_dest_dir_pathname="$platform_linux_dir_pathname/$platform_linux_packaging_dest_dir_name"
+readonly platform_linux_packaging_dest_dir_pathname
+
+package_for_platform "$platform_linux_dir_pathname" "$platform_linux_packaging_dest_dir_pathname" 'linux-x64'
+
 (
-	linux_id="usbtemp-server-$usbtemp_server_version-linux-x86_64"
-	readonly linux_id
+	printf '\nArchiving: (.tar.gz)\n' >&2
 
-	linux_tmp_packaging_dir_pathname="$base_tmp_packaging_dir_pathname/$linux_id"
-	readonly linux_tmp_packaging_dir_pathname
+	mkdir -p -- "$project_packaging_archives_dest_dir_pathname"
 
-	mkdir -p -- "$linux_tmp_packaging_dir_pathname"
-
-	do_packaging "$linux_tmp_packaging_dir_pathname" 'linux-x64'
-
-	cd -- "$base_tmp_packaging_dir_pathname"
-
-	tar -czf "$packaging_dest_dir_pathname/$linux_id.tar.gz" "$linux_id"
+	cd -- "$platform_linux_dir_pathname/"
+	tar -cvzf "$project_packaging_archives_dest_dir_pathname/$platform_linux_packaging_dest_dir_name.tar.gz" \
+	          "$platform_linux_packaging_dest_dir_name/"
 )
 
-# windows
+printf '\n===============================================================================\n' >&2
+
+#endregion
+
+#region windows x86_64
+
+printf '\n======================= Packaging for Windows (x86_64) ========================\n\n' >&2
+
+platform_windows_dir_pathname="$platforms_dir_pathname/windows-x86_64"
+readonly platform_windows_dir_pathname
+
+platform_windows_packaging_dest_dir_name="usbtemp-server-$usbtemp_server_version-windows-x86_64"
+readonly platform_windows_packaging_dest_dir_name
+
+platform_windows_packaging_dest_dir_pathname="$platform_windows_dir_pathname/$platform_windows_packaging_dest_dir_name"
+readonly platform_windows_packaging_dest_dir_pathname
+
+package_for_platform "$platform_windows_dir_pathname" "$platform_windows_packaging_dest_dir_pathname" 'win-x64'
+
 (
-	windows_id="usbtemp-server-$usbtemp_server_version-windows-x86_64"
-	readonly windows_id
+	printf '\nArchiving: (.zip)\n' >&2
 
-	windows_tmp_packaging_dir_pathname="$base_tmp_packaging_dir_pathname/$windows_id"
-	readonly windows_tmp_packaging_dir_pathname
+	mkdir -p -- "$project_packaging_archives_dest_dir_pathname"
 
-	mkdir -p -- "$windows_tmp_packaging_dir_pathname"
-
-	do_packaging "$windows_tmp_packaging_dir_pathname" 'win-x64'
-
-	cd -- "$base_tmp_packaging_dir_pathname"
-
-	zip -r "$packaging_dest_dir_pathname/$windows_id.zip" "$windows_id"
+	cd -- "$platform_windows_dir_pathname/"
+	zip -r "$project_packaging_archives_dest_dir_pathname/$platform_windows_packaging_dest_dir_name.zip" \
+	       "$platform_windows_packaging_dest_dir_name/"
 )
+
+printf '\n===============================================================================\n' >&2
+
+#endregion
+
+unset -f package_for_platform \
+         clone_snapshot_repo
+
+#endregion
+
+#endregion
+
+printf '\n\nDone.\n' >&2
