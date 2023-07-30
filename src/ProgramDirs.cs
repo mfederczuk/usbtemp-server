@@ -13,6 +13,12 @@ namespace UsbtempServer;
 
 public static class ProgramDirs
 {
+	private static readonly Pathname.Component PROGRAM_NAME_COMPONENT_XDG =
+		Pathname.Component.OfString("usbtemp-server");
+
+	private static readonly Pathname.Component PROGRAM_NAME_COMPONENT_COMPONENT =
+		Pathname.Component.OfString("Usbtemp Server");
+
 	[Pure]
 	public static Pathname? GetConfigDirectoryPathname()
 	{
@@ -21,15 +27,39 @@ public static class ProgramDirs
 		if (currentOperatingSystemKind == OperatingSystemKind.LinuxBased)
 		{
 			return XdgBaseDirs.GetConfigHome()
-				.JoinWith(Pathname.Component.OfString("usbtemp-server"));
+				.JoinWith(PROGRAM_NAME_COMPONENT_XDG);
 		}
 
 		if (currentOperatingSystemKind == OperatingSystemKind.Windows)
 		{
 			return Pathname.OfString(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
 				.JoinWith(
-					Pathname.Component.OfString("Usbtemp Server"),
+					PROGRAM_NAME_COMPONENT_COMPONENT,
 					Pathname.Component.OfString("Config")
+				);
+		}
+
+		// don't know, don't care
+		return null;
+	}
+
+	[Pure]
+	public static Pathname? GetStateDirectoryPathname()
+	{
+		OperatingSystemKind currentOperatingSystemKind = OperatingSystemKind.GetCurrent();
+
+		if (currentOperatingSystemKind == OperatingSystemKind.LinuxBased)
+		{
+			return XdgBaseDirs.GetStateHome()
+				.JoinWith(PROGRAM_NAME_COMPONENT_XDG);
+		}
+
+		if (currentOperatingSystemKind == OperatingSystemKind.Windows)
+		{
+			return Pathname.OfString(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
+				.JoinWith(
+					PROGRAM_NAME_COMPONENT_COMPONENT,
+					Pathname.Component.OfString("State")
 				);
 		}
 
