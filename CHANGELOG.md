@@ -15,9 +15,12 @@ and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/
 
 ### Added ###
 
-* Auto-check for available updates on startup ([`8468824`](https://github.com/mfederczuk/usbtemp-server/commit/84688245824f6d22f3fc6cf5f24b9c41bd6dd4a2))
-* For testing purposes, "virtual" thermometers can be used instead of physical/real ones
-* Any connected USB thermometers are now detected
+* An automatic check for available updates of the program ([`8468824`](https://github.com/mfederczuk/usbtemp-server/commit/84688245824f6d22f3fc6cf5f24b9c41bd6dd4a2))
+* "Virtual thermometers" — instead of using real, physical USB thermometers, these virtual thermometers can be used
+  instead.  
+  They are mostly just supposed to be used for development and/or testing purposes
+* Detection of connected USB thermometers.
+  If only a single device is detected, it will prompt to use that one, without needing to input the port name manually
 
 ## [v0.1.0-indev01] - 2023-07-25 ##
 
