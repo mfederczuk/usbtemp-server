@@ -149,6 +149,24 @@ public readonly struct Pathname
 	}
 
 	[Pure]
+	public Pathname Dirname()
+	{
+		string? str = System.IO.Path.GetDirectoryName(this.value);
+
+		if (str is null)
+		{
+			return this;
+		}
+
+		if (str == string.Empty)
+		{
+			str = ".";
+		}
+
+		return OfString(str);
+	}
+
+	[Pure]
 	public override bool Equals([NotNullWhen(true)] object? obj)
 	{
 		return ((obj is not null) &&
