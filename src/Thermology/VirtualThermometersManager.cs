@@ -99,6 +99,11 @@ public static class VirtualThermometersManager
 
 	private static T? DeserializeJsonFile<T>(Pathname filePathname)
 	{
+		if (!(FileSystem.Exists(filePathname)))
+		{
+			return default(T);
+		}
+
 		string fileContents = FileSystem.ReadTextContents(filePathname);
 		return JsonConvert.DeserializeObject<T>(fileContents);
 	}
