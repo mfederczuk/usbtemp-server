@@ -10,7 +10,7 @@ public static class ThermometerFactory
 	{
 		if (portName.IsVirtual())
 		{
-			return new VirtualThermometer();
+			return VirtualThermometersManager.GetRegisteredVirtualThermometerByPortName(portName);
 		}
 
 		return PhysicalThermometer.OpenNew(portName);

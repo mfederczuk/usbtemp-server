@@ -82,13 +82,6 @@ public static class Program
 	{
 		using (Cli.Paragraph paragraph = cli.BeginNewParagraph())
 		{
-#if DEBUG
-			{
-				string debugMsg = "[DEBUG] Virtual devices are created by prefixing an arbitrary port name with" +
-				                  $" \"{SerialPortName.VIRTUAL_PREFIX}\"";
-				paragraph.PrintLine(debugMsg);
-			}
-#endif
 			Cli.StringResponse response = paragraph.PromptForString(msg: "Enter the port name of the USB thermometer");
 
 			if (response.IsEof())

@@ -12,9 +12,10 @@ public class VirtualThermometer : IThermometer
 	private readonly Random rng = new Random();
 	private readonly IThermometer.SerialNumber serialNumber;
 
-	public VirtualThermometer()
+	[Pure]
+	public VirtualThermometer(IThermometer.SerialNumber serialNumber)
 	{
-		this.serialNumber = IThermometer.SerialNumber.CreateRandom(this.rng);
+		this.serialNumber = serialNumber;
 	}
 
 	[Pure]
