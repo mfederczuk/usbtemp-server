@@ -80,6 +80,8 @@ public static class Program
 
 	private static IThermometer? promptForThermometer(Cli cli)
 	{
+		StateStorage.PreviouslyUsedThermometerInfo? previouslyUsedDevice = StateStorage.GetPreviouslyUsedDeviceInfo();
+
 		using (Cli.Paragraph paragraph = cli.BeginNewParagraph())
 		{
 			Cli.StringResponse response = paragraph.PromptForString(msg: "Enter the port name of the USB thermometer");
@@ -99,7 +101,17 @@ public static class Program
 				return null;
 			}
 
-			return ThermometerFactory.OpenNew(portName: SerialPortName.OfString(responseValue));
+			SerialPortName portName = SerialPortName.OfString(responseValue);
+			IThermometer thermometer = ThermometerFactory.OpenNew(portName);
+
+			previouslyUsedDevice =
+				new StateStorage.PreviouslyUsedThermometerInfo(
+					PortName: portName,
+					SerialNumber: thermometer.GetSerialNumber()
+				);
+			StateStorage.SetPreviouslyUsedThermometerInfo(previouslyUsedDevice);
+
+			return thermometer;
 		}
 	}
 
