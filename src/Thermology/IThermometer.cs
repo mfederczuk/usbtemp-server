@@ -26,11 +26,6 @@ public interface IThermometer : IDisposable
 			return new SerialNumber(value);
 		}
 
-		public static SerialNumber CreateRandom(Random rng)
-		{
-			return SerialNumber.OfUInt64((ulong)(rng.NextInt64()));
-		}
-
 		[Pure]
 		public override bool Equals([NotNullWhen(true)] object? obj)
 		{
