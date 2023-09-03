@@ -1,0 +1,17 @@
+/*
+ * SPDX-License-Identifier: CC0-1.0
+ */
+
+code span.code-placeholder {
+	font-style: italic;
+	opacity: 75%;
+	user-select: none;
+}
+
+code span.code-placeholder::before {
+	content: "[";
+}
+
+code span.code-placeholder::after {
+	content: "]";
+}

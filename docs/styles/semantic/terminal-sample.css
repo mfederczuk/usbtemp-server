@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2023 Michael Federczuk
+ *
+ * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
+ */
+
+pre.terminal-sample {
+	padding: 8px;
+
+	border-color: #2F2F2F;
+	border-radius: 4px;
+	border-style: solid;
+	border-width: 2px;
+
+	background-color: #1F1F1F;
+}
+
+pre.terminal-sample > code {
+	tab-size: 4;
+}
+
+pre.terminal-sample > code > samp kbd.terminal-sample-user-input,
+pre.terminal-sample > code > samp .terminal-sample-user-input-placeholder {
+	text-decoration: underline;
+}
+
+/* #region placeholder */
+
+pre.terminal-sample > code > samp .terminal-sample-placeholder,
+pre.terminal-sample > code > samp .terminal-sample-user-input-placeholder {
+	font-style: italic;
+	opacity: 75%;
+	user-select: none;
+}
+
+pre.terminal-sample > code > samp .terminal-sample-placeholder::before,
+pre.terminal-sample > code > samp .terminal-sample-user-input-placeholder::before {
+	content: "[";
+}
+
+pre.terminal-sample > code > samp .terminal-sample-placeholder::after,
+pre.terminal-sample > code > samp .terminal-sample-user-input-placeholder::after {
+	content: "]";
+}
+
+/* #endregion */

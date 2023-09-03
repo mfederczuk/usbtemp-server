@@ -1,0 +1,37 @@
+/*
+ * Copyright (c) 2023 Michael Federczuk
+ *
+ * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
+ */
+
+.os-details-container {
+	margin-top: 16px;
+	margin-bottom: 16px;
+}
+
+.os-details-container > details.os-details:not([open]) {
+	opacity: 66.67%;
+}
+
+@media (min-width: 75em) {
+	.os-details-container {
+		width: 95%;
+		display: flex;
+		flex-direction: row;
+	}
+
+	.os-details-container > details.os-details {
+		flex: auto;
+		margin-bottom: auto;
+	}
+
+	.os-details-container > details.os-details:not(:first-of-type) {
+		margin-left: 8px;
+	}
+}
+
+@media not (min-width: 75em) {
+	.os-details-container > details.os-details:not(:first-of-type) {
+		margin-top: 8px;
+	}
+}
