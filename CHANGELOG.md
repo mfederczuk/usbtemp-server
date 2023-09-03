@@ -13,6 +13,8 @@ and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/
 
 ## [v0.1.0-indev04] - 2023-09-03 ##
 
+### Fixed ###
+
 [v0.1.0-indev04]: https://github.com/mfederczuk/usbtemp-server/releases/tag/v0.1.0-indev04
 
 * Program would crash on startup if the virtual thermometers file does not exist
