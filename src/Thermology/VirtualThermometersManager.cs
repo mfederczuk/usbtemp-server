@@ -89,7 +89,8 @@ public static class VirtualThermometersManager
 
 		IEnumerable<VirtualThermometerDefinition>? virtualThermometerDefinitions = null;
 
-		if (virtualThermometerDefinitionsJsonFilePathname is not null)
+		if ((virtualThermometerDefinitionsJsonFilePathname is not null) &&
+			VirtualThermometersManager.exists(virtualThermometerDefinitionsJsonFilePathname.Value))
 		{
 			virtualThermometerDefinitions = VirtualThermometersManager
 				.DeserializeJsonFile<IEnumerable<VirtualThermometerDefinition>>(
@@ -105,6 +106,11 @@ public static class VirtualThermometersManager
 	{
 		return ProgramDirs.GetConfigDirectoryPathname()
 			?.JoinWith(Pathname.Component.OfString("virtual_devices.json"));
+	}
+
+	private static bool exists(Pathname pathname)
+	{
+		return File.Exists(pathname.ToString());
 	}
 
 	private static T? DeserializeJsonFile<T>(Pathname filePathname)
