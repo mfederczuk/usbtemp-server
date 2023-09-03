@@ -48,12 +48,12 @@ public class EmptyEnumerable<T> : IEnumerable<T>
 	[Pure]
 	IEnumerator<T> IEnumerable<T>.GetEnumerator()
 	{
-		return (IEnumerator<T>)(new EmptyEnumerable<T>());
+		return (IEnumerator<T>)(new EmptyEnumerator());
 	}
 
 	[Pure]
 	IEnumerator IEnumerable.GetEnumerator()
 	{
-		return (IEnumerator)(new EmptyEnumerable<T>());
+		return (IEnumerator)(new EmptyEnumerator());
 	}
 }
