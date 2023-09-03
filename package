@@ -43,7 +43,7 @@ if [ $# -gt 0 ]; then
 	exit 4
 fi
 
-usbtemp_server_version='0.1.0-indev02'
+usbtemp_server_version='0.1.0-indev03'
 readonly usbtemp_server_version
 
 # <project_root_dir>/
