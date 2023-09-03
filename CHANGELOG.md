@@ -11,13 +11,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [**Keep a Changelog v1.0.0**](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased ##
+
+* Program would crash on startup if the virtual thermometers file does not exist
+
 ## [v0.1.0-indev03] - 2023-09-03 ##
 
 [v0.1.0-indev03]: https://github.com/mfederczuk/usbtemp-server/releases/tag/v0.1.0-indev03
 
 ### Fixed ###
 
-* Program would crash on startup if the virtual thermometers file does not exist
+* ~~Program would crash on startup if the virtual thermometers file does not exist~~
 
 ## [v0.1.0-indev02] - 2023-09-03 ##
 
