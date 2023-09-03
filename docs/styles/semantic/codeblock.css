@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2023 Michael Federczuk
+ *
+ * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
+ */
+
+pre.codeblock {
+	padding: 8px;
+
+	border-color: #2F2F2F;
+	border-radius: 4px;
+	border-style: solid;
+	border-width: 2px;
+
+	background-color: #1F1F1F;
+}
+
+pre.codeblock > code {
+	tab-size: 4;
+}
+
+/* #region placeholder */
+
+pre.codeblock > code .codeblock-placeholder {
+	font-style: italic;
+	opacity: 75%;
+	user-select: none;
+}
+
+pre.codeblock > code .codeblock-placeholder::before {
+	content: "[";
+}
+
+pre.codeblock > code .codeblock-placeholder::after {
+	content: "]";
+}
+
+/* #endregion */

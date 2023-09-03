@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2023 Michael Federczuk
+ *
+ * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
+ */
+
+details {
+	border-color: #2F2F2F;
+	border-width: 1px;
+	border-style: solid;
+}
+
+details > summary ~ * {
+	margin: 8px;
+}
+
+details > summary {
+	padding: 8px;
+	background-color: #1B1B1B;
+	cursor: pointer;
+}
+
+details[open] summary ~ * {
+	animation: fade-in 250ms;
+}
+
+@keyframes fade-in {
+	0% {
+		opacity: 0;
+	}
+
+	100% {
+		opacity: 1;
+	}
+}

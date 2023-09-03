@@ -1,0 +1,66 @@
+/*
+ * Copyright (c) 2023 Michael Federczuk
+ *
+ * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
+ */
+
+/* #region imports */
+
+@import url("./elements/code.css");
+@import url("./elements/details.css");
+@import url("./elements/headings.css");
+@import url("./elements/kbd.css");
+@import url("./elements/var.css");
+
+@import url("./semantic/codeblock.css");
+@import url("./semantic/inline-code.css");
+@import url("./semantic/terminal-sample.css");
+@import url("./semantic/spans.css");
+@import url("./semantic/os-details.css");
+
+/* #endregion */
+
+html {
+	color-scheme: dark;
+}
+
+body {
+	margin: 0;
+
+	background-color: #171717;
+	color: #DFDFDF;
+
+	font-family: sans-serif, serif;
+	line-height: 125%;
+}
+
+/* #region noscript */
+
+.noscript-container {
+	padding: 8px;
+	background-color: firebrick;
+}
+
+.noscript-text {
+	color: whitesmoke;
+	font-family: sans-serif, serif;
+}
+
+/* #endregion */
+
+main {
+	padding: 16px;
+}
+
+/* #region footer */
+
+footer {
+	padding: 16px;
+	text-align: center;
+}
+
+#github-logo {
+	width: 32px;
+}
+
+/* #endregion */

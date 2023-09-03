@@ -1,0 +1,488 @@
+<!--
+	Copyright (c) 2023 Michael Federczuk
+
+	SPDX-License-Identifier: CC-BY-SA-4.0
+-->
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>usbtemp-server</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="styles/main.css" />
+		<script src="main.js"></script>
+	</head>
+	<body>
+		<noscript>
+			<div class="noscript-container">
+				<span class="noscript-text">
+					JavaScript is disabled. Enable JavaScript for an improved experience.
+				</span>
+			</div>
+		</noscript>
+
+		<main>
+			<h1>usbtemp-server</h1>
+
+			<img
+				src="https://img.shields.io/badge/version-0.1.0--indev01-informational.svg"
+				alt="version: 0.1.0-indev01" />
+
+			<!-- about -->
+			<section>
+				<h2>About</h2>
+
+				<p>
+					<span class="definition">usbtemp-server</span> is a simple server application that reads
+					the temperature from a <a
+						href="https://www.analog.com/en/products/ds18b20.html"
+						title="DS18B20 Datasheet and Product Info | Analog Devices">DS18B20</a>-compatible,
+					1-Wire-connected USB thermometer and exposes that functionality as a HTTP JSON API.
+				</p>
+
+				<p>
+					This software is specifically written to support the thermometers sold by <a
+						href="https://usbtemp.com/"
+						title="Digital Thermometer &minus;55 &mdash; +125°C with USB connection">usbtemp.com</a>,
+					though &mdash; in theory &mdash; any DS18B20-compatible device should work.
+					(this project is <strong>not</strong> sponsored by or is affiliated with usbtemp.com)
+				</p>
+
+				<p>
+					The software also serves an HTML page that continuously polls the server for the temperature and
+					displays it.<br />
+					It's designed to be used an OBS Browser Source.
+					(if you're a streamer, than this is what you're gonna be interested in)
+				</p>
+
+				<p>
+					Currently, the only operating systems which are supported are Linux-based systems and
+					Microsoft Windows.<br />
+					There are no plans to add support for other operating systems.
+				</p>
+			</section>
+
+			<h2 id="usage">Usage</h2>
+
+			<!-- download & execution -->
+			<section>
+				<div class="os-details-container">
+					<details class="os-details os-details-type-linux">
+						<summary>Linux</summary>
+
+						<p>
+							Download the program from
+							<a href="https://github.com/mfederczuk/usbtemp-server/releases/download/v0.1.0-indev01/usbtemp-server-0.1.0-indev01-linux-x86_64.tar.gz">here</a>.
+						</p>
+
+						<p>
+							After downloading and extracting the archive, execute
+							the file <code>usbtemp-server</code>.<br />
+							The program takes no arguments.
+						</p>
+
+						<pre class="terminal-sample"><code><samp>$ <kbd class="terminal-sample-user-input">./usbtemp-server</kbd></samp></code></pre>
+					</details>
+
+					<details class="os-details os-details-type-windows">
+						<summary>Windows</summary>
+
+						<p>
+							Download the program from
+							<a href="https://github.com/mfederczuk/usbtemp-server/releases/download/v0.1.0-indev01/usbtemp-server-0.1.0-indev01-windows-x86_64.zip">here</a>.
+						</p>
+
+						<p>
+							After downloading and extracting the archive, execute
+							the file <code>usbtemp-server.exe</code> by double clicking it from the file explorer.<br />
+							The program has no graphical interface, so the console window will open.
+						</p>
+					</details>
+				</div>
+			</section>
+
+			<!-- update check -->
+			<section>
+				<h3 id="update-check">Update Check</h3>
+
+				<p>
+					The first thing the program will do is check for updates.<br />
+					There are three possible outcomes:
+				</p>
+
+				<ul>
+					<li>
+						<strong>The current version is up-to-date</strong>
+
+						<pre class="terminal-sample"><code><samp>Checking for updates... You're up-to-date</samp></code></pre>
+					</li>
+					<li>
+						<strong>A newer version is available</strong>
+
+						<pre class="terminal-sample"><code><samp>Checking for updates... An update is available!
+Download it here: <span class="terminal-sample-placeholder">release page URL</span></samp></code></pre>
+
+						<p>
+							Auto-update is currently not implemented, the new version must be manually downloaded.
+						</p>
+					</li>
+					<li>
+						<strong>An error occurred</strong>
+
+						<pre class="terminal-sample"><code><samp>Checking for updates... Failed to check for updates. Ignoring and moving on.</samp></code></pre>
+					</li>
+				</ul>
+			</section>
+
+			<!-- device selection -->
+			<section>
+				<h3 id="device-selection">Device Selection</h3>
+
+				<p>
+					Next, the USB thermometer which is supposed to be used must be selected.<br />
+					A thermometer device is identified by its <span class="definition">port name</span>.
+				</p>
+
+				<div class="os-details-container">
+					<details class="os-details os-details-type-linux">
+						<summary>Linux</summary>
+
+						<p>
+							The port name of a thermometer is the pathname of the thermometer's device file.<br />
+
+							Since 1-Wire-connected devices are <span class="definition">USB serial devices</span>,
+							it can be one of <code>/dev/ttyUSB0</code>&ndash;<code>/dev/ttyUSB255</code>.<br />
+
+							If no other USB serial devices are connected, it will be <code>/dev/ttyUSB0</code>.
+							(<a
+								href="https://www.kernel.org/doc/html/latest/usb/usb-serial.html"
+								title="USB serial &#8212; The Linux Kernel  documentation">Linux kernel documentation on USB serial devices</a>)
+						</p>
+					</details>
+
+					<details class="os-details os-details-type-windows">
+						<summary>Windows</summary>
+
+						<p>
+							The port name can be one of <code>COM0</code>&ndash;<code>COM9</code>.<br />
+
+							It will most likely be either <code>COM3</code> or <code>COM4</code>.
+							Check the <span class="proper-noun">Device Manager</span> for the actual name.
+						</p>
+
+						<p>
+							Example:
+						</p>
+
+						<img
+							src="images/win10-device-manager-screenshot.png"
+							alt="A screenshot of the Windows 10 &quot;Device Manager&quot;, showing that a USB thermometer, labeled &quot;Prolific [CENSORED] USB Serial COM Port&quot;, is connected under the port name &quot;COM3&quot;" />
+					</details>
+				</div>
+
+				<p>
+					The program will try to detect any devices that are connected.<br />
+					Again, there are three cases:
+				</p>
+
+				<ul>
+					<li>
+						<strong>No devices detected</strong>
+
+						<pre class="terminal-sample"><code><samp>No USB thermometers detected.
+Enter the port name of the device to use: <span class="terminal-sample-user-input-placeholder">port name</span></samp></code></pre>
+
+						<p>
+							If no devices were detected, the port name must be entered manually.<br />
+							Entering nothing will abort the program.
+						</p>
+					</li>
+					<li>
+						<strong>One device detected</strong>
+
+						<pre class="terminal-sample"><code><samp>A USB thermometer on port <span class="terminal-sample-placeholder">port name</span>, with the serial number <span class="terminal-sample-placeholder">serial number</span> was detected.
+Do you want to use this device? [Y/n] <span class="terminal-sample-user-input-placeholder">answer</span></samp></code></pre>
+
+						<p>
+							If one device was detected, the program prompts if the detected device should be used.<br />
+
+							A <strong>yes</strong>/<strong>no</strong> answer is expected.<br />
+
+							Any answer that starts with the letter <code>Y</code> is seen as
+							a <strong>yes</strong> answer.<br />
+
+							Any other answer (<em>excluding</em> an empty answer) is seen as <strong>no</strong>.<br />
+
+							The uppercase <code>Y</code> in the prompt indicates that <strong>yes</strong> is
+							the default answer, i.e.: if nothing is entered.
+						</p>
+
+						<p>
+							If <strong>yes</strong> is entered, the detected device will be used.<br />
+							Otherwise, the program will prompt for the port name of a device.
+						</p>
+
+						<pre class="terminal-sample"><code><samp>A USB thermometer on port <span class="terminal-sample-placeholder">port name</span>, with the serial number <span class="terminal-sample-placeholder">serial number</span> was detected.
+Do you want to use this device? [Y/n] <kbd class="terminal-sample-user-input">n</kbd>
+
+Enter the port name of the device to use: <span class="terminal-sample-user-input-placeholder">port name</span></samp></code></pre>
+
+						<p>
+							Entering nothing will abort the program.
+						</p>
+					</li>
+					<li>
+						<strong>Multiple devices detected</strong>
+
+						<pre class="terminal-sample"><code><samp>The following USB thermometers were detected:
+  * Port: <span class="terminal-sample-placeholder">port name #1</span>  |  Serial number: <span class="terminal-sample-placeholder">serial number #1</span>
+  * Port: <span class="terminal-sample-placeholder">port name #2</span>  |  Serial number: <span class="terminal-sample-placeholder">serial number #2</span>
+  * Port: <span class="terminal-sample-placeholder">port name #3</span>  |  Serial number: <span class="terminal-sample-placeholder">serial number #3</span>
+Enter the port name of the device to use: <span class="terminal-sample-user-input-placeholder">port name</span></samp></code></pre>
+
+						<p>
+							If multiple devices were detected, the port name must also be entered manually.<br />
+							Entering nothing will abort the program.
+						</p>
+					</li>
+				</ul>
+			</section>
+
+			<!-- main -->
+			<section>
+				<p>
+					After a device is selected, the program will display both the serial number of the USB thermometer and
+					the initially-read temperature in degree celsius.<br />
+					Immediately afterwards, the HTTP server will start. It will listen on port 5000.
+				</p>
+
+				<div class="os-details-container">
+					<details class="os-details os-details-type-linux">
+						<summary>Linux</summary>
+
+						<pre class="terminal-sample"><code><samp>Serial number: <span class="terminal-sample-placeholder">serial number</span>
+Initial temperature: <span class="terminal-sample-placeholder">initial temperature</span>°C
+
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5000
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: <span class="terminal-sample-placeholder">pathname of the executable file's parent directory</span></samp></code></pre>
+
+						<p>
+							To stop the server and the program itself, send an interrupt signal.
+							(<kbd><kbd>Ctrl</kbd> + <kbd>C</kbd></kbd>)
+						</p>
+					</details>
+
+					<details class="os-details os-details-type-windows">
+						<summary>Windows</summary>
+
+						<pre class="terminal-sample"><code><samp>Serial number: <span class="terminal-sample-placeholder">serial number</span>
+Initial temperature: <span class="terminal-sample-placeholder">initial temperature</span>°C
+
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5000
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: <span class="terminal-sample-placeholder">path of the .exe file's parent folder</span></samp></code></pre>
+
+						<p>
+							To stop the server and the program itself, press <kbd><kbd>Ctrl</kbd> + <kbd>C</kbd></kbd>
+							while the console window is focused.
+						</p>
+					</details>
+				</div>
+			</section>
+
+			<!-- JSON API -->
+			<section>
+				<h3 id="json-api">JSON API</h3>
+
+				<span class="notice">(if you're a streamer and just want to use the HTML Polling Page as
+					an OBS Browser Source, then you can skip this section)</span>
+
+				<p>
+					An HTTP <code>GET</code> request on the path <code>/temperature</code> will read the temperature
+					from the selected USB thermometer.<br />
+					The response body JSON object has the following schema:
+				</p>
+
+				<pre class="codeblock"><code>{
+	"degreeCelsius": number
+}</code></pre>
+
+				<p>
+					As is obvious from the property name, the value of the property <code>degreeCelsius</code> is
+					a decimal number representing the temperature in degree celsius.<br />
+					The decimal point precision is whatever the thermometer device returns.
+				</p>
+			</section>
+
+			<!-- HTML polling page -->
+			<section>
+				<h3 id="html-polling-page">HTML Polling Page</h3>
+
+				<p>
+					The server provides a static HTML page that continuously polls itself
+					(using the JavaScript <a
+						href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API"
+						title="Fetch API - Web APIs | MDN">Fetch API</a>) for the temperature and displays it
+					in degree celsius.<br />
+					The polling interval is 5 seconds.
+				</p>
+
+				<p>
+					Currently, it is not possible to configure/change the displayed unit nor the polling interval.
+					(though it is planned)
+				</p>
+
+				<p>
+					The HTML page is available at the path <code>/overlay.html</code>.
+				</p>
+
+				<h4 id="obs-browser-source">Using the HTML Page as an OBS Browser Source</h4>
+
+				<p>
+					The HTML polling page is designed to be used as an OBS Browser Source.
+				</p>
+
+				<p>
+					Simply set the <code>URL</code> field to either <code>http://127.0.0.1:5000/overlay.html</code> or
+					<code>http://localhost:5000/overlay.html</code>.
+					Whichever you like more; both options are equivalent.
+				</p>
+
+				<img
+					src="images/obs-browser-source-screenshot.png"
+					alt="A screenshot of an OBS Browser Source Properties window displaying the HTML polling page" />
+			</section>
+
+			<!-- virtual devices -->
+			<section>
+				<h3 id="virtual-devices">Virtual Thermometers</h3>
+
+				<p>
+					As the name suggests, <span class="definition">virtual thermometers</span> are "fake"
+					thermometer devices that can be used in place of real, physical USB thermometers.<br />
+					They were added for development purposes, but can be used for testing in case physical devices
+					are not available for whatever reason.
+				</p>
+
+				<p>
+					To use a virtual thermometer, it must first be defined in a JSON file.
+				</p>
+
+				<div class="os-details-container">
+					<details class="os-details os-details-type-linux">
+						<summary>Linux</summary>
+
+						<p>
+							The pathname of the JSON file is
+							<code><var>$XDG_CONFIG_HOME</var>/usbtemp-server/virtual_devices.json</code>.
+						</p>
+
+						<p>
+							As per the
+							<a href="https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html">XDG Base Directory Specification</a>,
+							if the environment variable <var class="environment-variable">XDG_CONFIG_HOME</var> is unset,
+							empty or is a relative pathname, then it is seen as invalid and the default value
+							of <code><var>$HOME</var>/.config</code> is used instead.
+						</p>
+
+						<p>
+							If the environment variable <var class="environment-variable">HOME</var> is not
+							an absolute pathname, then the program will abort.
+						</p>
+					</details>
+
+					<details class="os-details os-details-type-windows">
+						<summary>Windows</summary>
+
+						<p>
+							The path of the JSON file is
+							<code><var>%LocalAppData%</var>\Usbtemp Server\Config\virtual_devices.json</code>, which
+							expanded should be
+							<code>C:\Users\<span class="code-placeholder">User</span>\AppData\Local\Usbtemp Server\Config\virtual_devices.json</code>
+						</p>
+					</details>
+				</div>
+
+				<p>
+					The file must be a JSON array of objects.
+					Each object must have the properties <code>portName</code> and <code>serialNumber</code>,
+					with the property <code>enabled</code> being optional.
+				</p>
+
+				<p>
+					The schema looks like this:
+				</p>
+
+				<pre class="codeblock"><code>[
+	{
+		"portName": string,
+		"serialNumber": string,
+		"enabled"?: boolean
+	}
+]</code></pre>
+
+				<p>
+					The property names are pretty self-explanatory.
+				</p>
+
+				<ul>
+					<li>
+						<code>portName</code><br />
+						The port name under which the virtual thermometer will be available.<br />
+						The final name will actually have the prefix <code>//virt/</code>.
+					</li>
+					<li>
+						<code>serialNumber</code><br />
+						The serial number must be defined as a hexadecimal (base-16) integer.
+					</li>
+					<li>
+						<code>enabled</code><br />
+						If this property is set to <code>false</code>, then the virtual device is ignored.<br />
+						It is effectively treated as though the entry doesn't exist in the first place.
+					</li>
+				</ul>
+
+				<pre class="codeblock"><code>[
+	{
+		"portName": "<span class="codeblock-placeholder">port name #1</span>",
+		"serialNumber": "<span class="codeblock-placeholder">serial number #1</span>",
+	},
+	{
+		"portName": "<span class="codeblock-placeholder">port name #2</span>",
+		"serialNumber": "<span class="codeblock-placeholder">serial number #2</span>",
+		"enabled": false
+	},
+	{
+		"portName": "<span class="codeblock-placeholder">port name #3</span>",
+		"serialNumber": "<span class="codeblock-placeholder">serial number #3</span>",
+		"enabled": true
+	}
+]</code></pre>
+
+				<p>
+					Using a virtual thermometer works exactly like using physical ones.<br />
+					Virtual ones will also always be detected.
+				</p>
+			</section>
+		</main>
+
+		<footer>
+			<a
+				href="https://github.com/mfederczuk/usbtemp-server"
+				title="mfederczuk/usbtemp-server: Server that reads temperature from a DS18B20-compatible USB thermometer"><img
+					id="github-logo"
+					src="images/github-mark-white.svg"
+					alt="The GitHub Logo" /></a>
+		</footer>
+	</body>
+</html>

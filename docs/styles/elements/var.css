@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2023 Michael Federczuk
+ *
+ * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
+ */
+
+:not(code) > var {
+	padding: 3px;
+	line-height: 1.5%;
+
+	font-family: monospace;
+	font-style: normal;
+
+	border-radius: 4px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #2F2F2F;
+
+	background-color: #1F1F1F;
+}
+
+:not(code) > var.environment-variable::before {
+	content: "$";
+	font-weight: bold;
+	opacity: 66.67%;
+}
+
+code > var {
+	font-style: italic;
+	opacity: 75%;
+}
