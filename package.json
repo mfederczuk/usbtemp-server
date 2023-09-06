@@ -6,6 +6,7 @@
 
 		"build-dev": "npx --package=webpack -- webpack --mode=development",
 		"build-prod": "npx --package=webpack -- webpack --mode=production",
+		"build-dev-watch": "npm run-script build-dev -- --watch",
 		"clean": "rm -f -- wwwroot/polling-page.js",
 		"rebuild": "npm run clean && npm run build --",
 
