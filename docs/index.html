@@ -48,7 +48,7 @@
 				</p>
 
 				<p>
-					The software also serves an HTML page that continuously polls the server for the temperature and
+					The software also serves an HTML page that continuously fetches the temperature from the server and
 					displays it.<br />
 					It's designed to be used an OBS Browser Source.
 					(if you're a streamer, than this is what you're gonna be interested in)
@@ -304,8 +304,8 @@ info: Microsoft.Hosting.Lifetime[0]
 			<section>
 				<h3 id="json-api">JSON API</h3>
 
-				<span class="notice">(if you're a streamer and just want to use the HTML Polling Page as
-					an OBS Browser Source, then you can skip this section)</span>
+				<span class="notice">(if you're a streamer and just want to use the HTML page as an OBS Browser Source,
+					then you can skip this section)</span>
 
 				<p>
 					An HTTP <code>GET</code> request on the path <code>/temperature</code> will read the temperature
@@ -324,32 +324,31 @@ info: Microsoft.Hosting.Lifetime[0]
 				</p>
 			</section>
 
-			<!-- HTML polling page -->
+			<!-- HTML page -->
 			<section>
-				<h3 id="html-polling-page">HTML Polling Page</h3>
+				<h3 id="html-page">HTML Page</h3>
 
 				<p>
-					The server provides a static HTML page that continuously polls itself
-					(using the JavaScript <a
-						href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API"
-						title="Fetch API - Web APIs | MDN">Fetch API</a>) for the temperature and displays it
-					in degree celsius.<br />
-					The polling interval is 5 seconds.
+					The server provides a static HTML page that continuously fetches the temperature from the server
+					and displays it in degree celsius.<br />
+
+					The interval between those updates is 5 seconds.<br />
+
+					This page is available at the path <code>/overlay.html</code>, which makes the full URL to access it
+					either <code>http://127.0.0.1:5000/overlay.html</code> or
+					<code>http://localhost:5000/overlay.html</code>.<br />
 				</p>
 
 				<p>
-					Currently, it is not possible to configure/change the displayed unit nor the polling interval.
-					(though it is planned)
+					Currently, it is not possible to configure/change the unit in which the temperature is displayed or
+					how long the the interval between the updates is.
+					(though the configuration of the interval is currently being worked on)
 				</p>
 
-				<p>
-					The HTML page is available at the path <code>/overlay.html</code>.
-				</p>
-
-				<h4 id="obs-browser-source">Using the HTML Page as an OBS Browser Source</h4>
+				<h4 id="html-page-obs-browser-source">Using the HTML Page in an OBS Browser Source</h4>
 
 				<p>
-					The HTML polling page is designed to be used as an OBS Browser Source.
+					The HTML page is designed to be used in an OBS Browser Source.
 				</p>
 
 				<p>
@@ -360,7 +359,7 @@ info: Microsoft.Hosting.Lifetime[0]
 
 				<img
 					src="images/obs-browser-source-screenshot.png"
-					alt="A screenshot of an OBS Browser Source Properties window displaying the HTML polling page" />
+					alt="A screenshot of an OBS Browser Source Properties window displaying the HTML page" />
 			</section>
 
 			<!-- virtual devices -->
