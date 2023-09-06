@@ -31,7 +31,7 @@ readonly argv0
 
 #endregion
 
-for cmd in git dotnet; do
+for cmd in git npm dotnet; do
 	if ! command -v "$cmd" > '/dev/null'; then
 		printf '%s: %s: program missing\n' "$argv0" "$cmd" >&2
 		exit 27
@@ -236,6 +236,17 @@ package_for_platform() {
 	mkdir -p -- "$1" || return
 
 	clone_snapshot_repo "$4" || return
+
+	printf '\n' >&2
+
+	(
+		cd -- "$4" || return
+
+		npm install || return
+		npm run-script lint || return
+		npm run-script build-prod || return
+		rm -rf -- 'node_modules/' || return
+	)
 
 	printf '\n' >&2
 

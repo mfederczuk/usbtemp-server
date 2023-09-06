@@ -1,30 +1,30 @@
-﻿/*
+/*
  * Copyright (c) 2023 Michael Federczuk
  *
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
-const TEMPERATURE_VALUE_ELEMENT_ID = "temperature-value";
-const POLLING_INTERVAL_DURATION_MS = 5000;
+const TEMPERATURE_VALUE_ELEMENT_ID: string = "temperature-value";
+const POLLING_INTERVAL_DURATION_MS: number = 5000;
 
-let intervalId = null;
+let intervalId: number | null = null;
 
 const stopPolling = () => {
-	if ((typeof intervalId) !== "number") {
+	if (typeof intervalId !== "number") {
 		console.error("stopPolling(): Interval not running");
 		return;
 	}
 
-	clearInterval(intervalId);
+	window.clearInterval(intervalId);
 	intervalId = null;
 };
 
-const poll = (temperatureValueElement) => {
+const poll = (temperatureValueElement: HTMLElement) => {
 	fetch("/temperature")
-		.then((response) => response.json())
-		.then((json) => {
+		.then((response: Response) => response.json())
+		.then((json: Record<string, unknown>) => {
 			const degreeCelsius = json["degreeCelsius"];
-			if ((typeof degreeCelsius) !== "number") {
+			if (typeof degreeCelsius !== "number") {
 				console.error("Invalid response; property \"degreeCelsius\" is not a number");
 				return;
 			}
@@ -34,12 +34,12 @@ const poll = (temperatureValueElement) => {
 };
 
 const startPolling = () => {
-	if ((typeof intervalId) === "number") {
+	if (typeof intervalId === "number") {
 		console.error("startPolling(): Interval already running");
 		return;
 	}
 
-	const temperatureValueElement = document.getElementById(TEMPERATURE_VALUE_ELEMENT_ID);
+	const temperatureValueElement: HTMLElement | null = document.getElementById(TEMPERATURE_VALUE_ELEMENT_ID);
 
 	if (!(temperatureValueElement instanceof HTMLElement)) {
 		console.error(`Could not find HTML element with ID "${TEMPERATURE_VALUE_ELEMENT_ID}"`);
@@ -47,7 +47,7 @@ const startPolling = () => {
 	}
 
 	poll(temperatureValueElement);
-	intervalId = setInterval(
+	intervalId = window.setInterval(
 		() => {
 			poll(temperatureValueElement);
 		},

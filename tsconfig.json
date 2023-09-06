@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: CC0-1.0
+// <https://www.typescriptlang.org/tsconfig>
+{
+	"compilerOptions": {
+		// Type Checking
+		"alwaysStrict": true,
+		"exactOptionalPropertyTypes": true,
+		"noImplicitAny": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"strict": true,
+		"strictBindCallApply": true,
+		"strictFunctionTypes": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": true,
+		"useUnknownInCatchVariables": true,
+
+		// Modules
+		"module": "CommonJS",
+		"rootDir": "polling-page-script-src/",
+
+		// Interop Constraints
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+
+		// Language and Environment
+		"target": "ES2015",
+
+		// Completeness
+		"skipLibCheck": true,
+	},
+	"include": ["polling-page-script-src/"],
+}

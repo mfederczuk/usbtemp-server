@@ -1,9 +1,4 @@
 # SPDX-License-Identifier: CC0-1.0
 
-/bin/
-/obj/
-
 /node_modules/
 /wwwroot/polling-page.js
-
-/packages/
