@@ -4,7 +4,7 @@
 
 import { PollingHandler } from "./polling";
 
-const pollingHandler = new PollingHandler(window, console);
+const pollingHandler = new PollingHandler(window, console, 5000);
 
 window.addEventListener("load", () => {
 	pollingHandler.start();

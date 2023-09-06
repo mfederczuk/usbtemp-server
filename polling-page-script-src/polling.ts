@@ -4,18 +4,38 @@
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
+import { PageConfiguration } from "./configuration";
+
 export class PollingHandler {
 
+	static readonly #MIN_POLLING_INTERVAL_MS: number = PageConfiguration.MIN_POLLING_INTERVAL_MS;
+	static readonly #MAX_POLLING_INTERVAL_MS: number = PageConfiguration.MAX_POLLING_INTERVAL_MS;
+
 	static readonly #TEMPERATURE_VALUE_ELEMENT_ID: string = "temperature-value";
-	static readonly #POLLING_INTERVAL_DURATION_MS: number = 5000;
 
 	readonly #targetWindow: Window;
 	readonly #loggingConsole: Console;
+	readonly #pollingIntervalMs: number;
 	#intervalId: number | null = null;
 
-	public constructor(targetWindow: Window, loggingConsole: Console) {
+	public constructor(targetWindow: Window, loggingConsole: Console, pollingIntervalMs: number) {
+		if (Number.isNaN(pollingIntervalMs)) {
+			throw new Error("Polling interval must not be NaN");
+		}
+		if (pollingIntervalMs < PollingHandler.#MIN_POLLING_INTERVAL_MS) {
+			throw new Error(`Polling interval must not be less than ${PollingHandler.#MIN_POLLING_INTERVAL_MS}ms`);
+		}
+		// (2023-09-06)
+		// one some browsers, (tested with Firefox v117.0 and Chromium v116.0.5845.96) if the delay for setInterval()
+		// is too high, it seems to overflow and set to delay to a very low value. (possible even the lowest value)
+		// we have to manually limit it so that it doesn't happen
+		if (pollingIntervalMs > PollingHandler.#MAX_POLLING_INTERVAL_MS) {
+			throw new Error(`Polling interval must not be greater than ${PollingHandler.#MAX_POLLING_INTERVAL_MS}ms`);
+		}
+
 		this.#targetWindow = targetWindow;
 		this.#loggingConsole = loggingConsole;
+		this.#pollingIntervalMs = pollingIntervalMs;
 
 		Object.seal(this);
 	}
@@ -41,7 +61,7 @@ export class PollingHandler {
 			() => {
 				this.#doPoll(temperatureValueElement);
 			},
-			PollingHandler.#POLLING_INTERVAL_DURATION_MS
+			this.#pollingIntervalMs,
 		);
 	}
 
