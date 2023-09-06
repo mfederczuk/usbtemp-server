@@ -1,68 +1,34 @@
 /*
- * Copyright (c) 2023 Michael Federczuk
- *
- * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
+ * SPDX-License-Identifier: CC0-1.0
  */
 
-const TEMPERATURE_VALUE_ELEMENT_ID: string = "temperature-value";
-const POLLING_INTERVAL_DURATION_MS: number = 5000;
+import { PageConfiguration } from "./configuration";
+import { PollingHandler } from "./polling";
 
-let intervalId: number | null = null;
+let pollingHandler: PollingHandler | null = null;
 
-const stopPolling = () => {
-	if (typeof intervalId !== "number") {
-		console.error("stopPolling(): Interval not running");
+const documentVisibilityChangedEventListener = (event: Event): void => {
+	if (pollingHandler === null) {
+		console.error(`Document event "${event.type}": Polling handler is null`);
 		return;
 	}
 
-	window.clearInterval(intervalId);
-	intervalId = null;
-};
-
-const poll = (temperatureValueElement: HTMLElement) => {
-	fetch("/temperature")
-		.then((response: Response) => response.json())
-		.then((json: Record<string, unknown>) => {
-			const degreeCelsius = json["degreeCelsius"];
-			if (typeof degreeCelsius !== "number") {
-				console.error("Invalid response; property \"degreeCelsius\" is not a number");
-				return;
-			}
-
-			temperatureValueElement.innerHTML = degreeCelsius.toFixed();
-		});
-};
-
-const startPolling = () => {
-	if (typeof intervalId === "number") {
-		console.error("startPolling(): Interval already running");
-		return;
+	if (document.visibilityState === "visible") {
+		pollingHandler.start();
+	} else {
+		pollingHandler.stop();
 	}
-
-	const temperatureValueElement: HTMLElement | null = document.getElementById(TEMPERATURE_VALUE_ELEMENT_ID);
-
-	if (!(temperatureValueElement instanceof HTMLElement)) {
-		console.error(`Could not find HTML element with ID "${TEMPERATURE_VALUE_ELEMENT_ID}"`);
-		return;
-	}
-
-	poll(temperatureValueElement);
-	intervalId = window.setInterval(
-		() => {
-			poll(temperatureValueElement);
-		},
-		POLLING_INTERVAL_DURATION_MS
-	);
 };
 
 window.addEventListener("load", () => {
-	startPolling();
-});
+	const pageConfiguration: PageConfiguration =
+		PageConfiguration.fromUrlSearchParams(
+			new URLSearchParams(window.location.search),
+			console,
+		);
 
-document.addEventListener("visibilitychange", () => {
-	if (document.visibilityState === "visible") {
-		startPolling();
-	} else {
-		stopPolling();
-	}
+	pollingHandler = new PollingHandler(window, console, pageConfiguration.pollingIntervalMs);
+	pollingHandler.start();
+
+	document.addEventListener("visibilitychange", documentVisibilityChangedEventListener);
 });

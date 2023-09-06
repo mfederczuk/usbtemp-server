@@ -332,17 +332,38 @@ info: Microsoft.Hosting.Lifetime[0]
 					The server provides a static HTML page that continuously fetches the temperature from the server
 					and displays it in degree celsius.<br />
 
-					The interval between those updates is 5 seconds.<br />
+					The default interval between those updates is 5 seconds, though this can be configured.<br />
 
 					This page is available at the path <code>/overlay.html</code>, which makes the full URL to access it
 					either <code>http://127.0.0.1:5000/overlay.html</code> or
 					<code>http://localhost:5000/overlay.html</code>.<br />
 				</p>
 
+				<h4 id="html-page-configuration">Configuration</h4>
+
 				<p>
-					Currently, it is not possible to configure/change the unit in which the temperature is displayed or
-					how long the the interval between the updates is.
-					(though the configuration of the interval is currently being worked on)
+					The page's default behavior can be changed via the URL query parameters.<br />
+					To read more about URLs and the query parameters check out the page <a
+						href="https://developer.mozilla.org/en-US/docs/Learn/Common_questions/Web_mechanics/What_is_a_URL#parameters"
+						title="URL - MDN Web Docs Glossary: Definitions of Web-related terms | MDN">"What is a URL?" on the MDN Web Docs</a>.
+				</p>
+
+				<p>
+					As previously stated, the default interval between updates of the temperature is 5 seconds.<br />
+
+					This interval can be configured via the query parameter <var>updateInterval</var>,
+					which is in <em>milliseconds</em>.<br />
+
+					Example: Using the URL <code>http://127.0.0.1:5000/overlay.html?updateInterval=2500</code> would set
+					the interval duration to 2500 milliseconds, or 2.5 seconds.<br />
+
+					The minimum interval can be 500 milliseconds and the maximum can be 999 999 999 milliseconds.
+					If the configured interval is less than or greater than these limits, then the value is "clamped"
+					and the respective limit is used instead.
+				</p>
+
+				<p>
+					It is not possible to change the unit the temperature is displayed in.
 				</p>
 
 				<h4 id="html-page-obs-browser-source">Using the HTML Page in an OBS Browser Source</h4>
