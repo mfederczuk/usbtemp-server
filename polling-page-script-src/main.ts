@@ -35,7 +35,7 @@ window.addEventListener("load", () => {
 		new PollingHandler(
 			window,
 			console,
-			pageConfiguration.pollingIntervalMs,
+			pageConfiguration.pollingInterval,
 			temperatureFormatter,
 		);
 
