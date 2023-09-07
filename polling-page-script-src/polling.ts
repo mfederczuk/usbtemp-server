@@ -7,6 +7,7 @@
 import { PageConfiguration } from "./configuration";
 import type { TemperatureFormatter } from "./thermology/TemperatureFormatter";
 import type { Duration } from "./utils/Duration";
+import type { ActionScheduler, ScheduledActionHandle } from "./utils/actionScheduling/ActionScheduler";
 import type { Logger } from "./utils/logging/Logger";
 
 export class PollingHandler {
@@ -16,13 +17,15 @@ export class PollingHandler {
 
 	static readonly #TEMPERATURE_TEXT_ELEMENT_ID: string = "temperature-text";
 
+	readonly #actionScheduler: ActionScheduler;
 	readonly #targetWindow: Window;
 	readonly #logger: Logger;
 	readonly #pollingInterval: Duration;
 	readonly #temperatureFormatter: TemperatureFormatter;
-	#intervalId: number | null = null;
+	#scheduledPollActionHandle: ScheduledActionHandle | null = null;
 
 	public constructor(
+		actionScheduler: ActionScheduler,
 		targetWindow: Window,
 		logger: Logger,
 		pollingInterval: Duration,
@@ -43,6 +46,7 @@ export class PollingHandler {
 			throw new Error(msg);
 		}
 
+		this.#actionScheduler = actionScheduler;
 		this.#targetWindow = targetWindow;
 		this.#logger = logger;
 		this.#pollingInterval = pollingInterval;
@@ -52,7 +56,7 @@ export class PollingHandler {
 	}
 
 	public start(): void {
-		if (typeof this.#intervalId === "number") {
+		if (this.#scheduledPollActionHandle !== null) {
 			this.#logError(`${PollingHandler.name}.${this.start.name}(): Polling process already running`);
 			return;
 		}
@@ -68,22 +72,16 @@ export class PollingHandler {
 		}
 
 		this.#doPoll(temperatureTextElement);
-		this.#intervalId = this.#targetWindow.setInterval(
-			() => {
-				this.#doPoll(temperatureTextElement);
-			},
-			this.#pollingInterval.toMilliseconds(),
-		);
 	}
 
 	public stop(): void {
-		if (typeof this.#intervalId !== "number") {
+		if (this.#scheduledPollActionHandle === null) {
 			this.#logError(`${PollingHandler.name}.${this.stop.name}(): Polling process not running`);
 			return;
 		}
 
-		this.#targetWindow.clearInterval(this.#intervalId);
-		this.#intervalId = null;
+		this.#scheduledPollActionHandle.cancel();
+		this.#scheduledPollActionHandle = null;
 	}
 
 	#doPoll(temperatureTextElement: HTMLElement): void {
@@ -97,6 +95,14 @@ export class PollingHandler {
 				}
 
 				temperatureTextElement.innerHTML = this.#temperatureFormatter.format(degreeCelsius);
+
+				this.#scheduledPollActionHandle =
+					this.#actionScheduler.scheduleAction(
+						this.#pollingInterval,
+						() => {
+							this.#doPoll(temperatureTextElement);
+						},
+					);
 			});
 	}
 

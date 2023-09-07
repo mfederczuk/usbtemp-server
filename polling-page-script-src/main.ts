@@ -6,11 +6,15 @@ import { PageConfiguration } from "./configuration";
 import { PollingHandler } from "./polling";
 import { IntlTemperatureFormatter } from "./thermology/IntlTemperatureFormatter";
 import type { TemperatureFormatter } from "./thermology/TemperatureFormatter";
+import type { ActionScheduler } from "./utils/actionScheduling/ActionScheduler";
+import { WindowTimeoutActionScheduler } from "./utils/actionScheduling/WindowTimeoutActionScheduler";
 import { ConsoleLogger } from "./utils/logging/ConsoleLogger";
 import type { Logger } from "./utils/logging/Logger";
 
 window.addEventListener("load", () => {
 	const logger: Logger = new ConsoleLogger(console);
+
+	const actionScheduler: ActionScheduler = new WindowTimeoutActionScheduler(window);
 
 	const pageConfiguration: PageConfiguration =
 		PageConfiguration.fromUrlSearchParams(
@@ -22,6 +26,7 @@ window.addEventListener("load", () => {
 
 	const pollingHandler =
 		new PollingHandler(
+			actionScheduler,
 			window,
 			logger,
 			pageConfiguration.pollingInterval,
