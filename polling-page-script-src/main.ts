@@ -4,6 +4,8 @@
 
 import { PageConfiguration } from "./configuration";
 import { PollingHandler } from "./polling";
+import { IntlTemperatureFormatter } from "./thermology/IntlTemperatureFormatter";
+import type { TemperatureFormatter } from "./thermology/TemperatureFormatter";
 
 let pollingHandler: PollingHandler | null = null;
 
@@ -27,7 +29,16 @@ window.addEventListener("load", () => {
 			console,
 		);
 
-	pollingHandler = new PollingHandler(window, console, pageConfiguration.pollingIntervalMs);
+	const temperatureFormatter: TemperatureFormatter = new IntlTemperatureFormatter(new Intl.Locale("en-US"));
+
+	pollingHandler =
+		new PollingHandler(
+			window,
+			console,
+			pageConfiguration.pollingIntervalMs,
+			temperatureFormatter,
+		);
+
 	pollingHandler.start();
 
 	document.addEventListener("visibilitychange", documentVisibilityChangedEventListener);

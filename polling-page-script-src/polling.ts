@@ -5,20 +5,27 @@
  */
 
 import { PageConfiguration } from "./configuration";
+import type { TemperatureFormatter } from "./thermology/TemperatureFormatter";
 
 export class PollingHandler {
 
 	static readonly #MIN_POLLING_INTERVAL_MS: number = PageConfiguration.MIN_POLLING_INTERVAL_MS;
 	static readonly #MAX_POLLING_INTERVAL_MS: number = PageConfiguration.MAX_POLLING_INTERVAL_MS;
 
-	static readonly #TEMPERATURE_VALUE_ELEMENT_ID: string = "temperature-value";
+	static readonly #TEMPERATURE_TEXT_ELEMENT_ID: string = "temperature-text";
 
 	readonly #targetWindow: Window;
 	readonly #loggingConsole: Console;
 	readonly #pollingIntervalMs: number;
+	readonly #temperatureFormatter: TemperatureFormatter;
 	#intervalId: number | null = null;
 
-	public constructor(targetWindow: Window, loggingConsole: Console, pollingIntervalMs: number) {
+	public constructor(
+		targetWindow: Window,
+		loggingConsole: Console,
+		pollingIntervalMs: number,
+		temperatureFormatter: TemperatureFormatter,
+	) {
 		if (Number.isNaN(pollingIntervalMs)) {
 			throw new Error("Polling interval must not be NaN");
 		}
@@ -36,6 +43,7 @@ export class PollingHandler {
 		this.#targetWindow = targetWindow;
 		this.#loggingConsole = loggingConsole;
 		this.#pollingIntervalMs = pollingIntervalMs;
+		this.#temperatureFormatter = temperatureFormatter;
 
 		Object.seal(this);
 	}
@@ -46,20 +54,20 @@ export class PollingHandler {
 			return;
 		}
 
-		const temperatureValueElement: HTMLElement | null =
-			this.#targetWindow.document.getElementById(PollingHandler.#TEMPERATURE_VALUE_ELEMENT_ID);
+		const temperatureTextElement: HTMLElement | null =
+			this.#targetWindow.document.getElementById(PollingHandler.#TEMPERATURE_TEXT_ELEMENT_ID);
 
-		if (!(temperatureValueElement instanceof HTMLElement)) {
-			const msg: string = `Could not find HTML element with ID "${PollingHandler.#TEMPERATURE_VALUE_ELEMENT_ID}"`;
+		if (!(temperatureTextElement instanceof HTMLElement)) {
+			const msg: string = `Could not find HTML element with ID "${PollingHandler.#TEMPERATURE_TEXT_ELEMENT_ID}"`;
 			this.#logError(msg);
 
 			return;
 		}
 
-		this.#doPoll(temperatureValueElement);
+		this.#doPoll(temperatureTextElement);
 		this.#intervalId = this.#targetWindow.setInterval(
 			() => {
-				this.#doPoll(temperatureValueElement);
+				this.#doPoll(temperatureTextElement);
 			},
 			this.#pollingIntervalMs,
 		);
@@ -75,7 +83,7 @@ export class PollingHandler {
 		this.#intervalId = null;
 	}
 
-	#doPoll(temperatureValueElement: HTMLElement): void {
+	#doPoll(temperatureTextElement: HTMLElement): void {
 		void this.#targetWindow.fetch("/temperature")
 			.then((response: Response) => response.json())
 			.then((json: Record<string, unknown>) => {
@@ -85,7 +93,7 @@ export class PollingHandler {
 					return;
 				}
 
-				temperatureValueElement.innerHTML = degreeCelsius.toFixed();
+				temperatureTextElement.innerHTML = this.#temperatureFormatter.format(degreeCelsius);
 			});
 	}
 
