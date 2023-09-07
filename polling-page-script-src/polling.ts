@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
+import type { ApiService } from "./api/ApiService";
 import { PageConfiguration } from "./configuration";
 import type { TemperatureFormatter } from "./thermology/TemperatureFormatter";
 import type { Duration } from "./utils/Duration";
@@ -18,6 +19,7 @@ export class PollingHandler {
 	static readonly #TEMPERATURE_TEXT_ELEMENT_ID: string = "temperature-text";
 
 	readonly #actionScheduler: ActionScheduler;
+	readonly #apiService: ApiService;
 	readonly #targetWindow: Window;
 	readonly #logger: Logger;
 	readonly #pollingInterval: Duration;
@@ -26,6 +28,7 @@ export class PollingHandler {
 
 	public constructor(
 		actionScheduler: ActionScheduler,
+		apiService: ApiService,
 		targetWindow: Window,
 		logger: Logger,
 		pollingInterval: Duration,
@@ -47,6 +50,7 @@ export class PollingHandler {
 		}
 
 		this.#actionScheduler = actionScheduler;
+		this.#apiService = apiService;
 		this.#targetWindow = targetWindow;
 		this.#logger = logger;
 		this.#pollingInterval = pollingInterval;
@@ -85,15 +89,8 @@ export class PollingHandler {
 	}
 
 	#doPoll(temperatureTextElement: HTMLElement): void {
-		void this.#targetWindow.fetch("/temperature")
-			.then((response: Response) => response.json())
-			.then((json: Record<string, unknown>) => {
-				const degreeCelsius = json["degreeCelsius"];
-				if (typeof degreeCelsius !== "number") {
-					this.#logError("Invalid response; property \"degreeCelsius\" is not a number");
-					return;
-				}
-
+		void this.#apiService.getTemperatureInDegreeCelsius()
+			.then((degreeCelsius: number) => {
 				temperatureTextElement.innerHTML = this.#temperatureFormatter.format(degreeCelsius);
 
 				this.#scheduledPollActionHandle =

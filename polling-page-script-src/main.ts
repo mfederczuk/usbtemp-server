@@ -2,6 +2,8 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+import type { ApiService } from "./api/ApiService";
+import { WindowFetchApiService } from "./api/WindowFetchApiService";
 import { PageConfiguration } from "./configuration";
 import { PollingHandler } from "./polling";
 import { IntlTemperatureFormatter } from "./thermology/IntlTemperatureFormatter";
@@ -16,6 +18,8 @@ window.addEventListener("load", () => {
 
 	const actionScheduler: ActionScheduler = new WindowTimeoutActionScheduler(window);
 
+	const apiService: ApiService = new WindowFetchApiService(window);
+
 	const pageConfiguration: PageConfiguration =
 		PageConfiguration.fromUrlSearchParams(
 			new URLSearchParams(window.location.search),
@@ -27,6 +31,7 @@ window.addEventListener("load", () => {
 	const pollingHandler =
 		new PollingHandler(
 			actionScheduler,
+			apiService,
 			window,
 			logger,
 			pageConfiguration.pollingInterval,
