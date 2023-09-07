@@ -7,21 +7,6 @@ import { PollingHandler } from "./polling";
 import { IntlTemperatureFormatter } from "./thermology/IntlTemperatureFormatter";
 import type { TemperatureFormatter } from "./thermology/TemperatureFormatter";
 
-let pollingHandler: PollingHandler | null = null;
-
-const documentVisibilityChangedEventListener = (event: Event): void => {
-	if (pollingHandler === null) {
-		console.error(`Document event "${event.type}": Polling handler is null`);
-		return;
-	}
-
-	if (document.visibilityState === "visible") {
-		pollingHandler.start();
-	} else {
-		pollingHandler.stop();
-	}
-};
-
 window.addEventListener("load", () => {
 	const pageConfiguration: PageConfiguration =
 		PageConfiguration.fromUrlSearchParams(
@@ -31,7 +16,7 @@ window.addEventListener("load", () => {
 
 	const temperatureFormatter: TemperatureFormatter = new IntlTemperatureFormatter(new Intl.Locale("en-US"));
 
-	pollingHandler =
+	const pollingHandler =
 		new PollingHandler(
 			window,
 			console,
@@ -41,5 +26,11 @@ window.addEventListener("load", () => {
 
 	pollingHandler.start();
 
-	document.addEventListener("visibilitychange", documentVisibilityChangedEventListener);
+	document.addEventListener("visibilitychange", () => {
+		if (document.visibilityState === "visible") {
+			pollingHandler.start();
+		} else {
+			pollingHandler.stop();
+		}
+	});
 });
