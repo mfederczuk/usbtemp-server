@@ -7,6 +7,7 @@
 import { PageConfiguration } from "./configuration";
 import type { TemperatureFormatter } from "./thermology/TemperatureFormatter";
 import type { Duration } from "./utils/Duration";
+import type { Logger } from "./utils/logging/Logger";
 
 export class PollingHandler {
 
@@ -16,14 +17,14 @@ export class PollingHandler {
 	static readonly #TEMPERATURE_TEXT_ELEMENT_ID: string = "temperature-text";
 
 	readonly #targetWindow: Window;
-	readonly #loggingConsole: Console;
+	readonly #logger: Logger;
 	readonly #pollingInterval: Duration;
 	readonly #temperatureFormatter: TemperatureFormatter;
 	#intervalId: number | null = null;
 
 	public constructor(
 		targetWindow: Window,
-		loggingConsole: Console,
+		logger: Logger,
 		pollingInterval: Duration,
 		temperatureFormatter: TemperatureFormatter,
 	) {
@@ -43,7 +44,7 @@ export class PollingHandler {
 		}
 
 		this.#targetWindow = targetWindow;
-		this.#loggingConsole = loggingConsole;
+		this.#logger = logger;
 		this.#pollingInterval = pollingInterval;
 		this.#temperatureFormatter = temperatureFormatter;
 
@@ -100,7 +101,7 @@ export class PollingHandler {
 	}
 
 	#logError(message: string): void {
-		this.#loggingConsole.error(message);
+		this.#logger.logError(message);
 	}
 }
 

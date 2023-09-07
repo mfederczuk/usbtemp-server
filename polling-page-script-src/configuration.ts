@@ -5,6 +5,7 @@
  */
 
 import { Duration } from "./utils/Duration";
+import type { Logger } from "./utils/logging/Logger";
 
 export class PageConfiguration {
 
@@ -33,19 +34,16 @@ export class PageConfiguration {
 		Object.freeze(this);
 	}
 
-	public static fromUrlSearchParams(searchParams: URLSearchParams, loggingConsole: Console): PageConfiguration {
+	public static fromUrlSearchParams(searchParams: URLSearchParams, logger: Logger): PageConfiguration {
 		const pollingInterval: Duration =
-			PageConfiguration.#extractPollingIntervalFromUrlSearchParams(searchParams, loggingConsole);
+			PageConfiguration.#extractPollingIntervalFromUrlSearchParams(searchParams, logger);
 
 		return new PageConfiguration(
 			pollingInterval,
 		);
 	}
 
-	static #extractPollingIntervalFromUrlSearchParams(
-		searchParams: URLSearchParams,
-		loggingConsole: Console,
-	): Duration {
+	static #extractPollingIntervalFromUrlSearchParams(searchParams: URLSearchParams, logger: Logger): Duration {
 		const pollingIntervalStr: string =
 			(searchParams.get(PageConfiguration.#SEARCH_PARAM_NAME_POLLING_INTERVAL) ?? "");
 		const pollingIntervalMs: number = Number.parseFloat(pollingIntervalStr);
@@ -54,7 +52,7 @@ export class PageConfiguration {
 			const msg: string = `Configured polling interval ("${pollingIntervalStr}") is an invalid number.` +
 				" Ignoring it and using" +
 				` the default value (${PageConfiguration.#DEFAULT_POLLING_INTERVAL.toString()}) instead`;
-			loggingConsole.warn(msg);
+			logger.logWarning(msg);
 
 			return PageConfiguration.#DEFAULT_POLLING_INTERVAL;
 		}
@@ -65,7 +63,7 @@ export class PageConfiguration {
 			const msg: string = `Configured polling interval (${pollingInterval.toString()})` +
 				` is less than the minimum of ${PageConfiguration.MIN_POLLING_INTERVAL.toString()}.` +
 				" Ignoring it and using the minimum instead";
-			loggingConsole.warn(msg);
+			logger.logWarning(msg);
 
 			return PageConfiguration.MIN_POLLING_INTERVAL;
 		}
@@ -74,7 +72,7 @@ export class PageConfiguration {
 			const msg: string = `Configured polling interval (${pollingInterval.toString()})` +
 				` is greater than the maximum of ${PageConfiguration.MAX_POLLING_INTERVAL.toString()}.` +
 				" Ignoring it and using the maximum instead";
-			loggingConsole.warn(msg);
+			logger.logWarning(msg);
 
 			return PageConfiguration.MAX_POLLING_INTERVAL;
 		}
