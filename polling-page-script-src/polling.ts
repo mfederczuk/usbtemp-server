@@ -29,8 +29,8 @@ export class PollingHandler {
 		temperatureFormatter: TemperatureFormatter,
 	) {
 		if (pollingInterval.isLessThan(PollingHandler.#MIN_POLLING_INTERVAL)) {
-			const msg: string =
-				`Polling interval must not be less than ${PollingHandler.#MIN_POLLING_INTERVAL.toString()}`;
+			const msg: string = `Polling interval (${pollingInterval.toString()})` +
+				` must not be less than ${PollingHandler.#MIN_POLLING_INTERVAL.toString()}`;
 			throw new Error(msg);
 		}
 		// (2023-09-06)
@@ -38,8 +38,8 @@ export class PollingHandler {
 		// is too high, it seems to overflow and set to delay to a very low value. (possible even the lowest value)
 		// we have to manually limit it so that it doesn't happen
 		if (pollingInterval.isGreaterThan(PollingHandler.#MAX_POLLING_INTERVAL)) {
-			const msg: string =
-				`Polling interval must not be greater than ${PollingHandler.#MAX_POLLING_INTERVAL.toString()}`;
+			const msg: string = `Polling interval (${pollingInterval.toString()})` +
+				` must not be greater than ${PollingHandler.#MAX_POLLING_INTERVAL.toString()}`;
 			throw new Error(msg);
 		}
 
@@ -53,7 +53,7 @@ export class PollingHandler {
 
 	public start(): void {
 		if (typeof this.#intervalId === "number") {
-			this.#logError("startPolling(): Interval already running");
+			this.#logError(`${PollingHandler.name}.${this.start.name}(): Polling process already running`);
 			return;
 		}
 
@@ -78,7 +78,7 @@ export class PollingHandler {
 
 	public stop(): void {
 		if (typeof this.#intervalId !== "number") {
-			this.#logError("stopPolling(): Interval not running");
+			this.#logError(`${PollingHandler.name}.${this.stop.name}(): Polling process not running`);
 			return;
 		}
 
