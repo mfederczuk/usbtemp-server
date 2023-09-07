@@ -9,7 +9,7 @@ import type { Logger } from "./utils/logging/Logger";
 
 export class PageConfiguration {
 
-	static readonly #SEARCH_PARAM_NAME_POLLING_INTERVAL = "updateInterval";
+	static readonly #SEARCH_PARAM_NAME_POLLING_INTERVAL: string = "updateInterval";
 
 	static readonly #DEFAULT_POLLING_INTERVAL: Duration = Duration.fromSeconds(5);
 	public static readonly MIN_POLLING_INTERVAL: Duration = Duration.fromMilliseconds(500);
