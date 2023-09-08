@@ -7,7 +7,7 @@
 import type { ApiService } from "./api/ApiService";
 import { PageConfiguration } from "./configuration";
 import type { Temperature } from "./thermology/Temperature";
-import type { TemperatureFormatter } from "./thermology/TemperatureFormatter";
+import type { Page } from "./ui/Page";
 import type { Duration } from "./utils/Duration";
 import type { ActionScheduler, ScheduledActionHandle } from "./utils/actionScheduling/ActionScheduler";
 import type { Logger } from "./utils/logging/Logger";
@@ -17,23 +17,19 @@ export class PollingHandler {
 	static readonly #MIN_POLLING_INTERVAL: Duration = PageConfiguration.MIN_POLLING_INTERVAL;
 	static readonly #MAX_POLLING_INTERVAL: Duration = PageConfiguration.MAX_POLLING_INTERVAL;
 
-	static readonly #TEMPERATURE_TEXT_ELEMENT_ID: string = "temperature-text";
-
 	readonly #actionScheduler: ActionScheduler;
 	readonly #apiService: ApiService;
-	readonly #targetWindow: Window;
 	readonly #logger: Logger;
 	readonly #pollingInterval: Duration;
-	readonly #temperatureFormatter: TemperatureFormatter;
+	readonly #page: Page;
 	#scheduledPollActionHandle: ScheduledActionHandle | null = null;
 
 	public constructor(
 		actionScheduler: ActionScheduler,
 		apiService: ApiService,
-		targetWindow: Window,
 		logger: Logger,
 		pollingInterval: Duration,
-		temperatureFormatter: TemperatureFormatter,
+		page: Page,
 	) {
 		if (pollingInterval.isLessThan(PollingHandler.#MIN_POLLING_INTERVAL)) {
 			const msg: string = `Polling interval (${pollingInterval.toString()})` +
@@ -52,10 +48,9 @@ export class PollingHandler {
 
 		this.#actionScheduler = actionScheduler;
 		this.#apiService = apiService;
-		this.#targetWindow = targetWindow;
 		this.#logger = logger;
 		this.#pollingInterval = pollingInterval;
-		this.#temperatureFormatter = temperatureFormatter;
+		this.#page = page;
 
 		Object.seal(this);
 	}
@@ -66,17 +61,7 @@ export class PollingHandler {
 			return;
 		}
 
-		const temperatureTextElement: HTMLElement | null =
-			this.#targetWindow.document.getElementById(PollingHandler.#TEMPERATURE_TEXT_ELEMENT_ID);
-
-		if (!(temperatureTextElement instanceof HTMLElement)) {
-			const msg: string = `Could not find HTML element with ID "${PollingHandler.#TEMPERATURE_TEXT_ELEMENT_ID}"`;
-			this.#logError(msg);
-
-			return;
-		}
-
-		this.#doPoll(temperatureTextElement);
+		this.#doPoll();
 	}
 
 	public stop(): void {
@@ -89,16 +74,16 @@ export class PollingHandler {
 		this.#scheduledPollActionHandle = null;
 	}
 
-	#doPoll(temperatureTextElement: HTMLElement): void {
+	#doPoll(): void {
 		void this.#apiService.getTemperature()
 			.then((temperature: Temperature) => {
-				temperatureTextElement.innerHTML = this.#temperatureFormatter.format(temperature);
+				this.#page.setTemperature(temperature);
 
 				this.#scheduledPollActionHandle =
 					this.#actionScheduler.scheduleAction(
 						this.#pollingInterval,
 						() => {
-							this.#doPoll(temperatureTextElement);
+							this.#doPoll();
 						},
 					);
 			});
