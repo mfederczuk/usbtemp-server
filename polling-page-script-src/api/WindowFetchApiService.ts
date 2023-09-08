@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
+import { Temperature } from "../thermology/Temperature";
 import type { ApiService } from "./ApiService";
 
 export class WindowFetchApiService implements ApiService {
@@ -16,7 +17,7 @@ export class WindowFetchApiService implements ApiService {
 		Object.seal(this);
 	}
 
-	public async getTemperatureInDegreeCelsius(): Promise<number> {
+	public async getTemperature(): Promise<Temperature> {
 		const response: Response = await this.#window.fetch("/temperature");
 
 		const responseBodyJson: unknown = await response.json();
@@ -31,7 +32,13 @@ export class WindowFetchApiService implements ApiService {
 			throw new Error("JSON property \"degreeCelsius\" of the response body object is not a number");
 		}
 
-		return degreeCelsius;
+		if (degreeCelsius < -273.15) {
+			const msg: string = `JSON property "degreeCelsius" (value ${degreeCelsius})` +
+				" of the response body is below absolute zero (-273.15°C)";
+			throw new Error(msg);
+		}
+
+		return Temperature.ofDegreeCelsius(degreeCelsius);
 	}
 }
 

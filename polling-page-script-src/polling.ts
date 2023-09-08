@@ -6,6 +6,7 @@
 
 import type { ApiService } from "./api/ApiService";
 import { PageConfiguration } from "./configuration";
+import type { Temperature } from "./thermology/Temperature";
 import type { TemperatureFormatter } from "./thermology/TemperatureFormatter";
 import type { Duration } from "./utils/Duration";
 import type { ActionScheduler, ScheduledActionHandle } from "./utils/actionScheduling/ActionScheduler";
@@ -89,9 +90,9 @@ export class PollingHandler {
 	}
 
 	#doPoll(temperatureTextElement: HTMLElement): void {
-		void this.#apiService.getTemperatureInDegreeCelsius()
-			.then((degreeCelsius: number) => {
-				temperatureTextElement.innerHTML = this.#temperatureFormatter.format(degreeCelsius);
+		void this.#apiService.getTemperature()
+			.then((temperature: Temperature) => {
+				temperatureTextElement.innerHTML = this.#temperatureFormatter.format(temperature);
 
 				this.#scheduledPollActionHandle =
 					this.#actionScheduler.scheduleAction(

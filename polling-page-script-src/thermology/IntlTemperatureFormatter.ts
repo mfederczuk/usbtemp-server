@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+import type { Temperature } from "./Temperature";
 import type { TemperatureFormatter } from "./TemperatureFormatter";
 
 export class IntlTemperatureFormatter implements TemperatureFormatter {
@@ -23,8 +24,8 @@ export class IntlTemperatureFormatter implements TemperatureFormatter {
 		Object.seal(this);
 	}
 
-	public format(degreeCelsius: number): string {
-		return this.#numberFormat.format(degreeCelsius);
+	public format(temperature: Temperature): string {
+		return this.#numberFormat.format(temperature.toDegreeCelsius());
 	}
 }
 

@@ -2,7 +2,9 @@
  * SPDX-License-Identifier: CC0-1.0
  */
 
+import type { Temperature } from "./Temperature";
+
 export interface TemperatureFormatter {
 
-	format(degreeCelsius: number): string;
+	format(temperature: Temperature): string;
 }
