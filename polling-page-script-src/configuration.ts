@@ -44,8 +44,13 @@ export class PageConfiguration {
 	}
 
 	static #extractPollingIntervalFromUrlSearchParams(searchParams: URLSearchParams, logger: Logger): Duration {
-		const pollingIntervalStr: string =
-			(searchParams.get(PageConfiguration.#SEARCH_PARAM_NAME_POLLING_INTERVAL) ?? "");
+		const pollingIntervalStr: string | null =
+			searchParams.get(PageConfiguration.#SEARCH_PARAM_NAME_POLLING_INTERVAL);
+
+		if (pollingIntervalStr === null) {
+			return PageConfiguration.#DEFAULT_POLLING_INTERVAL;
+		}
+
 		const pollingIntervalMs: number = Number.parseFloat(pollingIntervalStr);
 
 		if (Number.isNaN(pollingIntervalMs)) {
