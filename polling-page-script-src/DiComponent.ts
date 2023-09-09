@@ -7,13 +7,14 @@
 import type { ApiService } from "./api/ApiService";
 import { WindowFetchApiService } from "./api/WindowFetchApiService";
 import { PageConfiguration } from "./configuration";
-import { PollingHandler } from "./polling";
+import { PollingTemperatureRepository } from "./data/PollingTemperatureRepository";
+import type { TemperatureRepository } from "./data/TemperatureRepository";
 import { IntlTemperatureFormatter } from "./thermology/IntlTemperatureFormatter";
 import type { TemperatureFormatter } from "./thermology/TemperatureFormatter";
-import { DocumentPage } from "./ui/DocumentPage";
-import type { Page } from "./ui/Page";
+import { Page } from "./ui/Page";
+import { ViewModel } from "./ui/ViewModel";
 import { Lazy } from "./utils/Lazy";
-import type { ActionScheduler } from "./utils/actionScheduling/ActionScheduler";
+import { ActionScheduler } from "./utils/actionScheduling/ActionScheduler";
 import { WindowTimeoutActionScheduler } from "./utils/actionScheduling/WindowTimeoutActionScheduler";
 import { ConsoleLogger } from "./utils/logging/ConsoleLogger";
 import type { Logger } from "./utils/logging/Logger";
@@ -45,27 +46,29 @@ export class DiComponent {
 			return new WindowFetchApiService(this.#window);
 		});
 
-	readonly #lazyPage: Lazy<Page> =
-		new Lazy<Page>((): Page => {
-			const temperatureFormatter: TemperatureFormatter = new IntlTemperatureFormatter(this.#locale);
+	readonly #lazyTemperatureRepository: Lazy<TemperatureRepository> =
+		new Lazy<TemperatureRepository>((): TemperatureRepository => {
+			const actionScheduler: ActionScheduler = new WindowTimeoutActionScheduler(this.#window);
+			const pageConfiguration: PageConfiguration = this.#lazyPageConfiguration.get();
+			const apiService: ApiService = this.#lazyApiService.get();
 
-			return new DocumentPage(this.#window.document, temperatureFormatter);
+			return new PollingTemperatureRepository(
+				actionScheduler,
+				pageConfiguration.pollingInterval,
+				apiService,
+			);
 		});
 
-	readonly #lazyPollingHandler: Lazy<PollingHandler> =
-		new Lazy<PollingHandler>((): PollingHandler => {
-			const actionScheduler: ActionScheduler = new WindowTimeoutActionScheduler(this.#window);
-			const apiService: ApiService = this.#lazyApiService.get();
-			const logger: Logger = this.#lazyLogger.get();
-			const pageConfiguration: PageConfiguration = this.#lazyPageConfiguration.get();
-			const page: Page = this.#lazyPage.get();
+	readonly #lazyPage: Lazy<Page> =
+		new Lazy<Page>((): Page => {
+			const temperatureRepository: TemperatureRepository = this.#lazyTemperatureRepository.get();
 
-			return new PollingHandler(
-				actionScheduler,
-				apiService,
-				logger,
-				pageConfiguration.pollingInterval,
-				page,
+			const viewModel: ViewModel = new ViewModel(temperatureRepository);
+			const temperatureFormatter: TemperatureFormatter = new IntlTemperatureFormatter(this.#locale);
+
+			return new Page(
+				viewModel,
+				temperatureFormatter,
 			);
 		});
 
@@ -81,8 +84,8 @@ export class DiComponent {
 		Object.seal(this);
 	}
 
-	public getPollingHandler(): PollingHandler {
-		return this.#lazyPollingHandler.get();
+	public getPage(): Page {
+		return this.#lazyPage.get();
 	}
 }
 

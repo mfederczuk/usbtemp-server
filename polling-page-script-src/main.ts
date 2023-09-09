@@ -5,7 +5,7 @@
  */
 
 import { DiComponent } from "./DiComponent";
-import type { PollingHandler } from "./polling";
+import type { Page } from "./ui/Page";
 
 const setUpPage = (): void => {
 	const diComponent =
@@ -15,15 +15,19 @@ const setUpPage = (): void => {
 			new Intl.Locale("en-US"),
 		);
 
-	const pollingHandler: PollingHandler = diComponent.getPollingHandler();
+	const page: Page = diComponent.getPage();
 
-	pollingHandler.start();
+	page.onLoad(window.document);
+
+	if (window.document.visibilityState === "visible") {
+		page.onVisible();
+	}
 
 	window.document.addEventListener("visibilitychange", () => {
 		if (document.visibilityState === "visible") {
-			pollingHandler.start();
+			page.onVisible();
 		} else {
-			pollingHandler.stop();
+			page.onHidden();
 		}
 	});
 };
