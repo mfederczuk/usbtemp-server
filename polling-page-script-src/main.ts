@@ -1,34 +1,60 @@
 /*
- * SPDX-License-Identifier: CC0-1.0
+ * Copyright (c) 2023 Michael Federczuk
+ *
+ * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
-import { PageConfiguration } from "./configuration";
-import { PollingHandler } from "./polling";
+import { DiComponent } from "./DiComponent";
+import type { Page } from "./ui/Page";
 
-let pollingHandler: PollingHandler | null = null;
-
-const documentVisibilityChangedEventListener = (event: Event): void => {
-	if (pollingHandler === null) {
-		console.error(`Document event "${event.type}": Polling handler is null`);
-		return;
-	}
-
-	if (document.visibilityState === "visible") {
-		pollingHandler.start();
-	} else {
-		pollingHandler.stop();
-	}
-};
-
-window.addEventListener("load", () => {
-	const pageConfiguration: PageConfiguration =
-		PageConfiguration.fromUrlSearchParams(
-			new URLSearchParams(window.location.search),
+const setUpPage = (): void => {
+	const diComponent =
+		new DiComponent(
+			window,
 			console,
+			new Intl.Locale("en-US"),
 		);
 
-	pollingHandler = new PollingHandler(window, console, pageConfiguration.pollingIntervalMs);
-	pollingHandler.start();
+	const page: Page = diComponent.getPage();
 
-	document.addEventListener("visibilitychange", documentVisibilityChangedEventListener);
-});
+	page.onLoad(window.document);
+
+	if (window.document.visibilityState === "visible") {
+		page.onVisible();
+	}
+
+	window.document.addEventListener("visibilitychange", () => {
+		if (document.visibilityState === "visible") {
+			page.onVisible();
+		} else {
+			page.onHidden();
+		}
+	});
+};
+
+if ((window.document.readyState === "interactive") || (window.document.readyState === "complete")) {
+	setUpPage();
+} else {
+	let isPageSetUp: boolean = false;
+
+	const ensurePageIsSetUp = (): void => {
+		if (isPageSetUp) {
+			return;
+		}
+
+		setUpPage();
+		isPageSetUp = true;
+	};
+
+	const handler = (): void => {
+		if ((window.document.readyState !== "interactive") && (window.document.readyState !== "complete")) {
+			return;
+		}
+
+		ensurePageIsSetUp();
+
+		window.document.removeEventListener("readystatechange", handler);
+	};
+
+	window.document.addEventListener("readystatechange", handler);
+}
