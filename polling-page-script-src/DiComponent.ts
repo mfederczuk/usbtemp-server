@@ -6,7 +6,8 @@
 
 import type { ApiService } from "./api/ApiService";
 import { WindowFetchApiService } from "./api/WindowFetchApiService";
-import { PageConfiguration } from "./configuration";
+import type { PageConfiguration } from "./configuration/PageConfiguration";
+import { PageConfigurationCreator } from "./configuration/PageConfigurationCreator";
 import { PollingTemperatureRepository } from "./data/PollingTemperatureRepository";
 import type { TemperatureRepository } from "./data/TemperatureRepository";
 import { Page } from "./ui/Page";
@@ -33,12 +34,9 @@ export class DiComponent {
 	readonly #lazyPageConfiguration: Lazy<PageConfiguration> =
 		new Lazy<PageConfiguration>((): PageConfiguration => {
 			const logger: Logger = this.#lazyLogger.get();
+			const creator = new PageConfigurationCreator(logger);
 
-			return PageConfiguration
-				.fromUrlSearchParams(
-					new URLSearchParams(this.#window.location.search),
-					logger,
-				);
+			return creator.createFromUrlQueryParams(new URLSearchParams(this.#window.location.search));
 		});
 
 	readonly #lazyApiService: Lazy<ApiService> =
