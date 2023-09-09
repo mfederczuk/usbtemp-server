@@ -5,10 +5,10 @@
  */
 
 import type { ApiService } from "../api/ApiService";
-import type { Temperature } from "../thermology/Temperature";
 import type { Duration } from "../utils/Duration";
 import { Poller } from "../utils/Poller";
 import type { ActionScheduler } from "../utils/actionScheduling/ActionScheduler";
+import type { Temperature } from "../utils/thermology/Temperature";
 import type { TemperatureRepository } from "./TemperatureRepository";
 
 export class PollingTemperatureRepository implements TemperatureRepository {

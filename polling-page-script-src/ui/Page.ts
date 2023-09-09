@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
-import type { Temperature } from "../thermology/Temperature";
-import type { TemperatureFormatter } from "../thermology/TemperatureFormatter";
+import type { Temperature } from "../utils/thermology/Temperature";
+import type { TemperatureFormatter } from "../utils/thermology/TemperatureFormatter";
 import type { ViewModel } from "./ViewModel";
 
 export class Page {

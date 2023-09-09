@@ -3,7 +3,7 @@
  */
 
 import type { TemperatureRepository } from "../data/TemperatureRepository";
-import type { Temperature } from "../thermology/Temperature";
+import type { Temperature } from "../utils/thermology/Temperature";
 
 export class ViewModel {
 

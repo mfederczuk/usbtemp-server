@@ -9,8 +9,6 @@ import { WindowFetchApiService } from "./api/WindowFetchApiService";
 import { PageConfiguration } from "./configuration";
 import { PollingTemperatureRepository } from "./data/PollingTemperatureRepository";
 import type { TemperatureRepository } from "./data/TemperatureRepository";
-import { IntlTemperatureFormatter } from "./thermology/IntlTemperatureFormatter";
-import type { TemperatureFormatter } from "./thermology/TemperatureFormatter";
 import { Page } from "./ui/Page";
 import { ViewModel } from "./ui/ViewModel";
 import { Lazy } from "./utils/Lazy";
@@ -18,6 +16,8 @@ import { ActionScheduler } from "./utils/actionScheduling/ActionScheduler";
 import { WindowTimeoutActionScheduler } from "./utils/actionScheduling/WindowTimeoutActionScheduler";
 import { ConsoleLogger } from "./utils/logging/ConsoleLogger";
 import type { Logger } from "./utils/logging/Logger";
+import { IntlTemperatureFormatter } from "./utils/thermology/IntlTemperatureFormatter";
+import type { TemperatureFormatter } from "./utils/thermology/TemperatureFormatter";
 
 export class DiComponent {
 

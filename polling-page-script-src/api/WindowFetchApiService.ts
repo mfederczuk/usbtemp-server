@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
-import { Temperature } from "../thermology/Temperature";
+import { Temperature } from "../utils/thermology/Temperature";
 import type { ApiService } from "./ApiService";
 
 export class WindowFetchApiService implements ApiService {
