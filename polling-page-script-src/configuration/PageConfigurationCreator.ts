@@ -22,14 +22,14 @@ export class PageConfigurationCreator {
 	}
 
 	public createFromUrlQueryParams(queryParams: URLSearchParams): PageConfiguration {
-		const pollingInterval: Duration = this.#extractPollingIntervalFromUrlSearchParams(queryParams);
+		const pollingInterval: Duration = this.#extractPollingIntervalFromUrlQueryParams(queryParams);
 
 		return new PageConfiguration(
 			pollingInterval,
 		);
 	}
 
-	#extractPollingIntervalFromUrlSearchParams(queryParams: URLSearchParams): Duration {
+	#extractPollingIntervalFromUrlQueryParams(queryParams: URLSearchParams): Duration {
 		const pollingIntervalStr: string | null =
 			queryParams.get(PageConfigurationCreator.#POLLING_INTERVAL_QUERY_PARAM_NAME);
 
