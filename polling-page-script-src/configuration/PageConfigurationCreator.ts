@@ -54,7 +54,7 @@ export class PageConfigurationCreator {
 			const msg: string = `Configured polling interval (${pollingInterval.toString()})` +
 				` is less than the minimum of ${PageConfiguration.MIN_POLLING_INTERVAL.toString()}.` +
 				" Ignoring it and using the minimum instead";
-				this.#logger.logWarning(msg);
+			this.#logger.logWarning(msg);
 
 			return PageConfiguration.MIN_POLLING_INTERVAL;
 		}
@@ -63,7 +63,7 @@ export class PageConfigurationCreator {
 			const msg: string = `Configured polling interval (${pollingInterval.toString()})` +
 				` is greater than the maximum of ${PageConfiguration.MAX_POLLING_INTERVAL.toString()}.` +
 				" Ignoring it and using the maximum instead";
-				this.#logger.logWarning(msg);
+			this.#logger.logWarning(msg);
 
 			return PageConfiguration.MAX_POLLING_INTERVAL;
 		}
