@@ -49,11 +49,13 @@ export class DiComponent {
 			const actionScheduler: ActionScheduler = new WindowTimeoutActionScheduler(this.#window);
 			const pageConfiguration: PageConfiguration = this.#lazyPageConfiguration.get();
 			const apiService: ApiService = this.#lazyApiService.get();
+			const logger: Logger = this.#lazyLogger.get();
 
 			return new PollingTemperatureRepository(
 				actionScheduler,
 				pageConfiguration.pollingInterval,
 				apiService,
+				logger,
 			);
 		});
 
