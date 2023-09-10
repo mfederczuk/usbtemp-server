@@ -363,6 +363,27 @@ info: Microsoft.Hosting.Lifetime[0]
 				</p>
 
 				<p>
+					How many decimal digits are displayed can also be configured.
+					By default, exactly one decimal digit is displayed, even if that digit is 0.<br />
+
+					The query parameters to configure the amount of digits are
+					<var>minDecimalDigits</var> (for the minimum amount of decimal digits) and
+					<var>maxDecimalDigits</var> (for the maximum amount of digits).
+					If the actually recorded temperature's decimal digits are less than the configured minimum, then
+					the <em>displayed</em> temperature is padded out with zeros to fill that configured minimum.
+					If the actual temperature's decimal digits are more than the configured maximum, then
+					the displayed temperature's decimal digits are cut at that maximum.<br />
+
+					Example: Using
+					the URL <code>http://127.0.0.1:5000/overlay.html?minDecimalDigits=2&maxDecimalDigits=4</code> would
+					set the minimum decimal digits to 2 and the maximum digits to 4.
+					(e.g.: <code>28.00°C</code>, <code>28.1234°C</code>, <code>28.24°C</code>, &hellip;)<br />
+
+					The limits of the digit amounts is 0 and 20. Like with the update interval, if either
+					the configured minimum or maximum amounts are below or above these limits, they are clamped as well.
+				</p>
+
+				<p>
 					It is not possible to change the unit the temperature is displayed in.
 				</p>
 

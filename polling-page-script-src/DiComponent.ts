@@ -60,9 +60,11 @@ export class DiComponent {
 	readonly #lazyPage: Lazy<Page> =
 		new Lazy<Page>((): Page => {
 			const temperatureRepository: TemperatureRepository = this.#lazyTemperatureRepository.get();
+			const pageConfiguration: PageConfiguration = this.#lazyPageConfiguration.get();
 
 			const viewModel: ViewModel = new ViewModel(temperatureRepository);
-			const temperatureFormatter: TemperatureFormatter = new IntlTemperatureFormatter(this.#locale);
+			const temperatureFormatter: TemperatureFormatter =
+				new IntlTemperatureFormatter(this.#locale, pageConfiguration.decimalDigitsRange);
 
 			return new Page(
 				viewModel,
