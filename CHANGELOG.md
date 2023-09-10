@@ -11,7 +11,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [**Keep a Changelog v1.0.0**](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased ##
+## [v0.1.0-indev05] - 2023-09-10 ##
+
+[v0.1.0-indev05]: https://github.com/mfederczuk/usbtemp-server/releases/tag/v0.1.0-indev05
 
 ### Added ###
 
@@ -25,9 +27,9 @@ and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/
 
 ## [v0.1.0-indev04] - 2023-09-03 ##
 
-### Fixed ###
-
 [v0.1.0-indev04]: https://github.com/mfederczuk/usbtemp-server/releases/tag/v0.1.0-indev04
+
+### Fixed ###
 
 * Program would crash on startup if the virtual thermometers file does not exist
 
