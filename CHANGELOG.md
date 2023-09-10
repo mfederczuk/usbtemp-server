@@ -16,6 +16,12 @@ and this project adheres to [**Semantic Versioning v2.0.0**](https://semver.org/
 ### Added ###
 
 * The polling interval of the HTML polling page can be configured via the URL query parameter `pollingInterval`
+* The displayed decimal digits of the HTML page can be configured via the URL query parameters `minDecimalDigits` and
+  `maxDecimalDigits`
+
+### Changed ###
+
+* The default displayed decimal digits in the HTML page is now exactly 1
 
 ## [v0.1.0-indev04] - 2023-09-03 ##
 
