@@ -4,65 +4,57 @@
  * SPDX-License-Identifier: MPL-2.0 AND Apache-2.0
  */
 
-const TEMPERATURE_VALUE_ELEMENT_ID: string = "temperature-value";
-const POLLING_INTERVAL_DURATION_MS: number = 5000;
+import { DiComponent } from "./DiComponent";
+import type { Page } from "./ui/Page";
 
-let intervalId: number | null = null;
+const setUpPage = (): void => {
+	const diComponent =
+		new DiComponent(
+			window,
+			console,
+			new Intl.Locale("en-US"),
+		);
 
-const stopPolling = () => {
-	if (typeof intervalId !== "number") {
-		console.error("stopPolling(): Interval not running");
-		return;
+	const page: Page = diComponent.getPage();
+
+	page.onLoad(window.document);
+
+	if (window.document.visibilityState === "visible") {
+		page.onVisible();
 	}
 
-	window.clearInterval(intervalId);
-	intervalId = null;
+	window.document.addEventListener("visibilitychange", () => {
+		if (document.visibilityState === "visible") {
+			page.onVisible();
+		} else {
+			page.onHidden();
+		}
+	});
 };
 
-const poll = (temperatureValueElement: HTMLElement) => {
-	fetch("/temperature")
-		.then((response: Response) => response.json())
-		.then((json: Record<string, unknown>) => {
-			const degreeCelsius = json["degreeCelsius"];
-			if (typeof degreeCelsius !== "number") {
-				console.error("Invalid response; property \"degreeCelsius\" is not a number");
-				return;
-			}
+if ((window.document.readyState === "interactive") || (window.document.readyState === "complete")) {
+	setUpPage();
+} else {
+	let isPageSetUp: boolean = false;
 
-			temperatureValueElement.innerHTML = degreeCelsius.toFixed();
-		});
-};
+	const ensurePageIsSetUp = (): void => {
+		if (isPageSetUp) {
+			return;
+		}
 
-const startPolling = () => {
-	if (typeof intervalId === "number") {
-		console.error("startPolling(): Interval already running");
-		return;
-	}
+		setUpPage();
+		isPageSetUp = true;
+	};
 
-	const temperatureValueElement: HTMLElement | null = document.getElementById(TEMPERATURE_VALUE_ELEMENT_ID);
+	const handler = (): void => {
+		if ((window.document.readyState !== "interactive") && (window.document.readyState !== "complete")) {
+			return;
+		}
 
-	if (!(temperatureValueElement instanceof HTMLElement)) {
-		console.error(`Could not find HTML element with ID "${TEMPERATURE_VALUE_ELEMENT_ID}"`);
-		return;
-	}
+		ensurePageIsSetUp();
 
-	poll(temperatureValueElement);
-	intervalId = window.setInterval(
-		() => {
-			poll(temperatureValueElement);
-		},
-		POLLING_INTERVAL_DURATION_MS
-	);
-};
+		window.document.removeEventListener("readystatechange", handler);
+	};
 
-window.addEventListener("load", () => {
-	startPolling();
-});
-
-document.addEventListener("visibilitychange", () => {
-	if (document.visibilityState === "visible") {
-		startPolling();
-	} else {
-		stopPolling();
-	}
-});
+	window.document.addEventListener("readystatechange", handler);
+}

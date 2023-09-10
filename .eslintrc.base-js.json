@@ -1,0 +1,90 @@
+{
+	"plugins": [
+		"@typescript-eslint"
+	],
+
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"ecmaVersion": 2015,
+		"sourceType": "module"
+	},
+
+	"env": {
+		"browser": true,
+		"shared-node-browser": true
+	},
+
+	"extends": [
+		"eslint:recommended",
+		"plugin:@typescript-eslint/recommended"
+	],
+	"rules": {
+		"@typescript-eslint/comma-spacing": "warn",
+		"@typescript-eslint/explicit-function-return-type": "off",
+		"@typescript-eslint/naming-convention": [
+			"warn",
+			{
+				"selector": "default",
+				"format": ["strictCamelCase"],
+				"leadingUnderscore": "forbid",
+				"trailingUnderscore": "forbid"
+			},
+			{
+				"selector": "variable",
+				"format": ["strictCamelCase", "UPPER_CASE"],
+				"leadingUnderscore": "forbid",
+				"trailingUnderscore": "forbid"
+			},
+			{
+				"selector": "classProperty",
+				"modifiers": ["static", "readonly"],
+				"format": ["UPPER_CASE"],
+				"leadingUnderscore": "forbid",
+				"trailingUnderscore": "forbid"
+			},
+			{
+				"selector": "typeLike",
+				"format": ["StrictPascalCase"],
+				"leadingUnderscore": "forbid",
+				"trailingUnderscore": "forbid"
+			}
+		],
+		"@typescript-eslint/no-empty-function": "warn",
+		"@typescript-eslint/no-empty-interface": "warn",
+		"@typescript-eslint/no-extra-semi": "warn",
+		"@typescript-eslint/no-inferrable-types": "off",
+		"@typescript-eslint/no-invalid-this": "error",
+		"@typescript-eslint/no-namespace": "off",
+		"@typescript-eslint/no-unused-vars": "warn",
+		"@typescript-eslint/quotes": "warn",
+		"@typescript-eslint/semi": "error",
+		"arrow-parens": "warn",
+		"comma-dangle": ["warn", "always-multiline"],
+		"comma-spacing": "off",
+		"curly": "warn",
+		"eqeqeq": "error",
+		"no-constant-condition": ["warn", { "checkLoops": false }],
+		"no-empty-function": "off",
+		"no-empty": "warn",
+		"no-extra-semi": "off",
+		"no-invalid-this": "off",
+		"no-lonely-if": "warn",
+		"no-throw-literal": "off",
+		"no-var": "error",
+		"prefer-const": "warn",
+		"prefer-exponentiation-operator": "warn",
+		"quotes": "off",
+		"semi": "off",
+		"space-unary-ops": "warn",
+		"spaced-comment": [
+			"warn",
+			"always",
+			{
+				"line": {
+					"markers": ["#region", "#endregion"]
+				}
+			}
+		],
+		"yoda": "warn"
+	}
+}

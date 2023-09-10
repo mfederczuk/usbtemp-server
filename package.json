@@ -6,8 +6,9 @@
 
 		"build-dev": "npx --package=webpack -- webpack --mode=development",
 		"build-prod": "npx --package=webpack -- webpack --mode=production",
+		"build-dev-watch": "npm run-script build-dev -- --watch",
 		"clean": "rm -f -- wwwroot/polling-page.js",
-		"rebuild": "npm run clean && npm run build --",
+		"rebuild-dev": "npm run clean && npm run build-dev --",
 
 		"update-dependencies": "npm run clean && rm -rf node_modules/ package-lock.json && npm update --save && npx --package=npm-check-updates ncu --upgrade && npm install"
 	},

@@ -13,7 +13,7 @@ namespace UsbtempServer.UpdateCheck;
 
 public class UpdateCheckComponent
 {
-	private static readonly SemanticVersion USBTEMP_SERVER_VERSION = SemanticVersion.OfString("0.1.0-indev04");
+	private static readonly SemanticVersion USBTEMP_SERVER_VERSION = SemanticVersion.OfString("0.1.0-indev05");
 
 	private readonly Lazy<IUpdateChecker> lazyUpdateChecker = new Lazy<IUpdateChecker>(createUpdateChecker);
 

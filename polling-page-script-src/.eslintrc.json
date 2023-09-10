@@ -1,0 +1,18 @@
+{
+	"root": true,
+
+	"parserOptions": {
+		"project": true
+	},
+
+	"extends": [
+		"../.eslintrc.base-js.json",
+		"plugin:@typescript-eslint/recommended-requiring-type-checking"
+	],
+	"rules": {
+		"@typescript-eslint/explicit-function-return-type": "error",
+		"@typescript-eslint/no-namespace": "off",
+		"@typescript-eslint/no-throw-literal": "error",
+		"@typescript-eslint/no-unused-vars": "warn"
+	}
+}
